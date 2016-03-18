@@ -135,8 +135,10 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
         int switches = 0;
         bool oneRan = false;
 
+        cout<<"STARTING RR"<<endl;
+
         for(y = 0; y < k; y++)
-                cout<<"  PROCESS "<<y<<"  REMAINING: "<<processes[y]->cpu<<endl;
+                cout<<"    PROCESS "<<y<<"  REMAINING: "<<processes[y]->cpu<<endl;
 
         //Find next ready process
         while(true)
@@ -148,7 +150,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 if(oneRan == false)
                                 {
                                         //currentProcess = (currentProcess + 1) % k;
-                                        cout<<"No process ready "<<x<<endl;
+                                        //cout<<"No process ready "<<x<<endl;
                                         //x += 50;
                                         x = incrementX(x, 50, k, processes, currentProcess);
                                 }
@@ -171,7 +173,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
 
                         }
 
-                        cout<<"PROCESS "<<currentProcess<<"  REMAINING: "<<processes[currentProcess]->cpu<<endl;
+                        //cout<<"PROCESS "<<currentProcess<<"  REMAINING: "<<processes[currentProcess]->cpu<<endl;
 
                         //Check if there are no remaining processes
                         for (y = 0; y < k; y++)
@@ -183,8 +185,8 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 if(y == k - 1)
                                 {
                                         for(y = 0; y < k; y++)
-                                                cout<<"  PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-                                        cout<<"TOTAL RUNETIME: "<<x  <<" SWITCHES: "<<switches<<endl;
+                                                cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                        cout<<"TOTAL RUNTIME: "<<x  <<" SWITCHES: "<<switches<<endl;
                                         return;
                                 }
                         }
@@ -193,7 +195,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                         {
                                 switches++;
                                 x = incrementX(x, 10, k, processes, currentProcess);
-                                cout<<"SWITCHING "<<x<<endl;
+                                //cout<<"SWITCHING "<<x<<endl;
                         }
 
                         lastProcess = currentProcess;
@@ -205,6 +207,50 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
         }
 
 }
+
+void fifo(int k, Process *processes[], int contextSwitch)
+{
+        int w;
+        int y;
+        int x = -10;
+
+        cout<<"STARTING FIFO"<<endl;
+
+        for(y = 0; y < k; y++)
+                cout<<"    PROCESS "<<y<<"  REMAINING: "<<processes[y]->cpu<<endl;
+
+        //Check if there are no remaining processes
+        for (y = 0; y < k; y++)
+        {
+                x = incrementX(x, 10, k, processes, y);
+                cout<<x<<endl;
+
+                while(true)
+                {
+                        if(processes[y]->enterTime > x)
+                        {
+                                x = incrementX(x, 1, k, processes, y);
+                        }
+                        else
+                        {
+                                for(w = 0; w < processes[y]->cpu; w++)
+                                {
+                                        x = incrementX(x, 1, k, processes, y);
+                                }
+                                processes[y]->cpu = 0;
+                                break;
+                        }
+                }
+                if(y == k - 1)
+                {
+                        for(y = 0; y < k; y++)
+                                cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                        cout<<"TOTAL RUNTIME: "<<x<<endl;
+                        return;
+                }
+        }
+}
+
 int main()
 {
 
@@ -219,17 +265,29 @@ int main()
         for(x = 0; x < k; x++)
         {
                 processes[x] = new Process();
-                processes[x]->enterTime = x * 5000;
+                processes[x]->enterTime = x * 50;
                 processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
         }
-
 
         fillPIDs(k, processes);
         fillMemValues(k, processes);
         fillCpuValues(k, processes);
-        //for(x = 0; x < k; x++)
-        //    cout<<"PID: "<<processes[x]->pid<<" CPU: "<<processes[x]->cpu<<" MEM: "<<processes[x]->mem<<endl;
 
         roundRobin(k, processes, quantum, contextSwitch);
+
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
+        }
+
+        fillPIDs(k, processes);
+        fillMemValues(k, processes);
+        fillCpuValues(k, processes);
+
+        fifo(k, processes, contextSwitch);
         return 0;
 }
