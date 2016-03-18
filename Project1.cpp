@@ -112,18 +112,18 @@ void fillPIDs(int k, Process *processes[])
 
 int incrementX(int x, int amount, int k, Process *processes[], int currentProcess)
 {
-    int y;
-    for (y = 0; y < k; y++)
-    {
-            if(processes[y]->cpu != 0 && processes[y]-> enterTime <= x && y != currentProcess)
-            {
-                    processes[y]->waitTime += amount;
-            }
+        int y;
+        for (y = 0; y < k; y++)
+        {
+                if(processes[y]->cpu != 0 && processes[y]->enterTime <= x && y != currentProcess)
+                {
+                        processes[y]->waitTime += amount;
+                }
 
-    }
+        }
 
-    x += amount;
-    return x;
+        x += amount;
+        return x;
 }
 
 void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
@@ -131,90 +131,84 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
         int x = 0;
         int y = 0;
         int currentProcess = 0;
-        int lastProcess;
+        int lastProcess = 0;
         int switches = 0;
         bool oneRan = false;
 
         for(y = 0; y < k; y++)
                 cout<<"  PROCESS "<<y<<"  REMAINING: "<<processes[y]->cpu<<endl;
 
-
+        //Find next ready process
         while(true)
         {
-                //Find next ready process
-                while(true)
+                if(processes[currentProcess]->enterTime > x || processes[currentProcess]->cpu == 0)
                 {
-                        if(processes[currentProcess]->enterTime > x || processes[currentProcess]->cpu == 0)
+                        if(0 == currentProcess)
                         {
-                                if(0 == currentProcess)
-                                {
-                                        if(oneRan == false)
-                                        {
-                                                //currentProcess = (currentProcess + 1) % k;
-                                                cout<<"No process ready "<<x<<endl;
-                                                //x += 50;
-                                                x = incrementX(x, 50, k, processes, currentProcess);
-                                        }
-                                        oneRan = false;
-                                }
-                                else
+                                if(oneRan == false)
                                 {
                                         //currentProcess = (currentProcess + 1) % k;
+                                        cout<<"No process ready "<<x<<endl;
+                                        //x += 50;
+                                        x = incrementX(x, 50, k, processes, currentProcess);
                                 }
-                                currentProcess = (currentProcess + 1) % k;
+                                oneRan = false;
                         }
                         else
                         {
-                                if(lastProcess != currentProcess)
-                                {
-                                        switches++;
-                                }
-                                lastProcess = currentProcess;
-                                oneRan = true;
-                                if(processes[currentProcess]->cpu != 0)
-                                        processes[currentProcess]->cpu--;
-
-                                if (processes[currentProcess]->cpu == 0)
-                                {
-                                        while (x % 50 != 0)
-                                        {
-                                                //cout<<"PROCESS "<<currentProcess<<"  REMAINING: "<<processes[currentProcess]->cpu<<endl;
-                                                //x++;
-                                                x = incrementX(x, 1, k, processes, currentProcess);
-                                        }
-                                }
-
-                                //cout<<"PROCESS "<<currentProcess<<"  REMAINING: "<<processes[currentProcess]->cpu<<endl;
-
-                                if(x % 50 == 0)
-                                {
-                                        //Check if there are no remaining processes
-                                        for (y = 0; y < k; y++)
-                                        {
-                                                if(processes[y]->cpu != 0)
-                                                {
-                                                        break;
-                                                }
-                                                if(y == k - 1)
-                                                {
-                                                        for(y = 0; y < k; y++)
-                                                                cout<<"  PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-                                                        cout<<"TOTAL RUNETIME: "<<x - ((k / 2) * 50) + (switches - 1) * 10<<" SWITCHES: "<<switches - 1<<endl;
-                                                        return;
-                                                }
-                                        }
-                                        //cout<<"SWITCHING "<<x<<endl;
-                                        currentProcess = (currentProcess + 1) % k;
-                                }
-                                x = incrementX(x, 1, k, processes, currentProcess);
+                                //currentProcess = (currentProcess + 1) % k;
                         }
+                        currentProcess = (currentProcess + 1) % k;
+                }
+                else
+                {
+                        if(processes[currentProcess]->cpu != 0)
+                                processes[currentProcess]->cpu -= 50;
+
+                        if (processes[currentProcess]->cpu <= 0)
+                        {
+                                processes[currentProcess]->cpu = 0;
+
+                        }
+
+                        cout<<"PROCESS "<<currentProcess<<"  REMAINING: "<<processes[currentProcess]->cpu<<endl;
+
+                        //Check if there are no remaining processes
+                        for (y = 0; y < k; y++)
+                        {
+                                if(processes[y]->cpu != 0)
+                                {
+                                        break;
+                                }
+                                if(y == k - 1)
+                                {
+                                        for(y = 0; y < k; y++)
+                                                cout<<"  PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                        cout<<"TOTAL RUNETIME: "<<x  <<" SWITCHES: "<<switches<<endl;
+                                        return;
+                                }
+                        }
+
+                        if(lastProcess != currentProcess)
+                        {
+                                switches++;
+                                x = incrementX(x, 10, k, processes, currentProcess);
+                                cout<<"SWITCHING "<<x<<endl;
+                        }
+
+                        lastProcess = currentProcess;
+                        oneRan = true;
+
+                        x = incrementX(x, 50, k, processes, currentProcess);
+                        currentProcess = (currentProcess + 1) % k;
                 }
         }
+
 }
 int main()
 {
 
-        int k = 10;
+        int k = 2;
         int x;
 
         int quantum = 50;
@@ -225,7 +219,7 @@ int main()
         for(x = 0; x < k; x++)
         {
                 processes[x] = new Process();
-                processes[x]->enterTime = x * 50;
+                processes[x]->enterTime = x * 5000;
                 processes[x]->waitTime = 0;
         }
 
