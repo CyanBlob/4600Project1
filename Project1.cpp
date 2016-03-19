@@ -130,6 +130,64 @@ int incrementX(int x, int amount, int k, Process *processes[], int currentProces
         return x;
 }
 
+
+void SJF(int k, Process *processes[], int contextSwitch)
+{
+  int w = 0, y = 0, z = 0, x = 0; //Loop counters
+  int currentProcess = 0;
+  int shortest = 0;
+
+  cout<<"STARTING SJF"<<endl;
+
+  for(z = 0; z < k; z++)
+          cout<<"    PROCESS "<<z<<"  CPU: "<<processes[z]->cpu<<endl;
+while(true)
+{
+          //Find the shortest process that has arrived
+          for(z = 0; z < (x / 50); z++)
+          {
+              if(processes[z]->cpu > processes[shortest]->cpu && processes[z]->cpu > 0)
+                shortest = z;
+          }
+                  cout<<"BEFORE WHILE. y = " << y << endl;
+                  //Loop
+                  while(true)
+                  {
+                          //Stall if process hasn't arrived
+                          /*if(processes[shortest]->enterTime > x)
+                          {
+                                  x = incrementX(x, 1, k, processes, shortest);
+                          }*/
+                          //Do stuff only if process has arrived
+                          //else
+                          {
+                                  //Process is running and adding wait time to other processes that have arrived
+                                  for(w = 0; w < processes[shortest]->cpu; w++)
+                                  {
+                                          x = incrementX(x, 1, k, processes, shortest);
+                                  }
+                                  cout<<"BEFORE BREAK. y = "<<y<<endl;
+                                  processes[shortest]->cpu = 0;
+                                  y++;
+                                  break;
+                          }
+                  }
+                  cout<<"BEFORE PRINT. y = " << y << endl;
+                  //End on last process
+                  if(y == k - 1)
+                  {
+                          for(y = 0; y < k; y++)
+                                  cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                          cout<<"TOTAL RUNTIME: "<<x<<endl;
+                          return;
+                  }
+                  else
+                  {
+                      x = incrementX(x, contextSwitch, k, processes, y);
+                  }
+      }
+}
+
 void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
 {
         int x = 0;
@@ -229,11 +287,6 @@ void fifo(int k, Process *processes[], int contextSwitch)
         //Loop through all processes
         for (y = 0; y < k; y++)
         {
-                if(y != 0)
-                {
-                    //cout<<"TEST"<<endl;
-                    //x = incrementX(x, 10, k, processes, y);
-                }
 
                 while(true)
                 {
@@ -303,5 +356,18 @@ int main()
         fillCpuValues(k, processes);
 
         fifo(k, processes, contextSwitch);
+
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
+        }
+
+        fillPIDs(k, processes);
+        fillMemValues(k, processes);
+        fillCpuValues(k, processes);
+        SJF(k, processes, contextSwitch);
         return 0;
 }
