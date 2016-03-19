@@ -15,6 +15,7 @@ void fillMemValues(int k, Process *processes[])
         int total = k * 20;
 
         //srand (time(NULL) + k);
+        srand(1);
 
         //Generate k memory amounts, averaging to 20
         for (x = 0; x < k; x++)
@@ -60,6 +61,7 @@ void fillCpuValues(int k, Process *processes[])
         int total = k * 6000;
 
         //srand (time(NULL) + k);
+        srand(1);
 
         //Generate k cpu cycle amounts, averaging to 6000
         for (x = 0; x < k; x++)
@@ -266,7 +268,7 @@ void fifo(int k, Process *processes[], int contextSwitch)
 int main()
 {
 
-        int k = 2;
+        int k = 5;
         int x;
 
         int quantum = 50;
