@@ -113,8 +113,10 @@ void fillPIDs(int k, Process *processes[])
 int incrementX(int x, int amount, int k, Process *processes[], int currentProcess)
 {
         int y;
+
         for (y = 0; y < k; y++)
         {
+
                 if(processes[y]->cpu != 0 && processes[y]->enterTime <= x && y != currentProcess)
                 {
                         processes[y]->waitTime += amount;
@@ -130,6 +132,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
 {
         int x = 0;
         int y = 0;
+        int w;
         int currentProcess = 0;
         int lastProcess = 0;
         int switches = 0;
@@ -138,7 +141,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
         cout<<"STARTING RR"<<endl;
 
         for(y = 0; y < k; y++)
-                cout<<"    PROCESS "<<y<<"  REMAINING: "<<processes[y]->cpu<<endl;
+                cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
 
         //Find next ready process
         while(true)
@@ -152,7 +155,8 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                         //currentProcess = (currentProcess + 1) % k;
                                         //cout<<"No process ready "<<x<<endl;
                                         //x += 50;
-                                        x = incrementX(x, quantum, k, processes, currentProcess);
+                                        for (w = 0; w < quantum; w++)
+                                            x = incrementX(x, 1, k, processes, currentProcess);
                                 }
                                 oneRan = false;
                         }
@@ -173,9 +177,9 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
 
                         }
 
-                        //cout<<"PROCESS "<<currentProcess<<"  REMAINING: "<<processes[currentProcess]->cpu<<endl;
+                        //cout<<"PROCESS "<<currentProcess<<"  CPU: "<<processes[currentProcess]->cpu<<endl;
 
-                        //Check if there are no remaining processes
+                        //Check if there are no CPU processes
                         for (y = 0; y < k; y++)
                         {
                                 if(processes[y]->cpu != 0)
@@ -201,7 +205,8 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                         lastProcess = currentProcess;
                         oneRan = true;
 
-                        x = incrementX(x, quantum, k, processes, currentProcess);
+                        for (w = 0; w < quantum; w++)
+                            x = incrementX(x, 1, k, processes, currentProcess);
                         currentProcess = (currentProcess + 1) % k;
                 }
         }
@@ -217,14 +222,14 @@ void fifo(int k, Process *processes[], int contextSwitch)
         cout<<"STARTING FIFO"<<endl;
 
         for(y = 0; y < k; y++)
-                cout<<"    PROCESS "<<y<<"  REMAINING: "<<processes[y]->cpu<<endl;
+                cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
 
         //Loop through all processes
         for (y = 0; y < k; y++)
         {
                 if(y != 0)
                 {
-                    cout<<"TEST"<<endl;
+                    //cout<<"TEST"<<endl;
                     //x = incrementX(x, 10, k, processes, y);
                 }
 
