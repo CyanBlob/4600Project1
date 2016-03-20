@@ -332,7 +332,6 @@ void fifo(int k, Process *processes[], int contextSwitch)
 
 void fifoQuad(int k, Process *processes[], int contextSwitch)
 {
-        int w;
         int y;
         int x = 0;
         int switches = 0;
@@ -368,10 +367,15 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                     {
                         processCount--;
                         processes[y]->running = false;
+                        break;
                     }
+
                 }
             }
+
             x = incrementX(x, 1, k, processes);
+
+
             for (y = 0; y < k; y++)
             {
                 if(processes[y]->cpu != 0)
@@ -391,7 +395,7 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
 int main()
 {
 
-        int k = 9;
+        int k = 5;
         int x;
 
         int quantum = 50;
@@ -405,6 +409,7 @@ int main()
                 processes[x]->enterTime = x * 50;
                 processes[x]->waitTime = 0;
                 processes[x]->arrived = false;
+                processes[x]->running = false;
         }
 
         fillPIDs(k, processes);
@@ -419,6 +424,7 @@ int main()
                 processes[x]->enterTime = x * 50;
                 processes[x]->waitTime = 0;
                 processes[x]->arrived = false;
+                processes[x]->running = false;
         }
 
         fillPIDs(k, processes);
@@ -433,6 +439,7 @@ int main()
                 processes[x]->enterTime = x * 50;
                 processes[x]->waitTime = 0;
                 processes[x]->arrived = false;
+                processes[x]->running = false;
         }
 
         fillPIDs(k, processes);
@@ -446,6 +453,7 @@ int main()
                 processes[x]->enterTime = x * 50;
                 processes[x]->waitTime = 0;
                 processes[x]->arrived = false;
+                processes[x]->running = false;
         }
 
         fillPIDs(k, processes);
