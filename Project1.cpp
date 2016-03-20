@@ -134,7 +134,6 @@ int incrementX(int x, int amount, int k, Process *processes[])
 void SJF(int k, Process *processes[], int contextSwitch)
 {
         int w = 0, y = 0, z = 0, x = 0; //Loop counters
-        int currentProcess = 0;
         int shortest = 0;
         int switches = 0;
 
@@ -330,6 +329,101 @@ void fifo(int k, Process *processes[], int contextSwitch)
         }
 }
 
+void SJFQuad(int k, Process *processes[], int contextSwitch)
+{
+    int y;
+    int x = 0;
+    int w = 0;
+    int shortest = 0;
+    int largest = 0;
+    int switches = 0;
+    int processCount = 0;
+    int contextCounter = 0;
+
+    cout<<"STARTING FIFO - QUAD"<<endl;
+
+    for(y = 0; y < k; y++)
+            cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
+
+    //Loop through all processes
+    while(true)
+    {
+        for (y = 0; y < k; y++)
+        {
+            //cout<<"PROCESS COUNT = "<<processCount<<" PROCESS " << y << " CPU = " << processes[y]->cpu<<" PROCESS " << y << " RUNNING = " << processes[y]->running<<endl;
+            if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+            {
+                //cout<<"THAT IF"<<endl;
+                contextCounter++;
+                if(contextCounter > 4)
+                {
+                    x = incrementX(x, contextSwitch, k, processes);
+                    switches++;
+                }
+                processCount++;
+                //processes[y]->running = true;
+                for(w = 0; w < k; w++)
+                {
+                    if(processes[w]->cpu >= processes[largest]->cpu)
+                    {
+                        largest = w;
+                    }
+                }
+                shortest = largest;
+                //cout<<"FOUND SHORTEST(LARGEST). LARGEST = "<< largest <<endl;
+
+                for(w = 0; w < k; w++)
+                {
+                    if(processes[w]->cpu <= processes[shortest]->cpu && processes[w]->cpu > 0 && processes[w]->enterTime <= x && processes[w]->running == false)
+                    {
+                        //cout<<"FINDING SHORTEST"<<endl;
+                        shortest = w;
+                        //processes[w]->running = true;
+                    }
+                }
+                //cout<<"FOUND SHORTEST. W = "<< w <<endl;
+                processes[shortest]->running = true;
+                //cout<<"AFTER TRUE"<<endl;
+            }
+        }
+        for (y = 0; y < k; y++)
+        {
+            //cout<<"SECOND LOOP"<<endl;
+            if(processes[y]->running)
+            {
+                //cout<<"FIRST IF"<<endl;
+                processes[y]->cpu--;
+                if(processes[y]->cpu == 0)
+                {
+                    //cout<<"SECOND IF"<<endl;
+                    //cout<<"FINISHED PROCESS"<<endl;
+                    processCount--;
+                    processes[y]->running = false;
+                    break;
+                }
+
+            }
+        }
+
+
+        x = incrementX(x, 1, k, processes);
+
+
+        for (y = 0; y < k; y++)
+        {
+            if(processes[y]->cpu != 0)
+                break;
+            else if(y == k - 1)
+            {
+                    for(y = 0; y < k; y++)
+                            cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                    cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                    return;
+            }
+        }
+    }
+
+}
 void fifoQuad(int k, Process *processes[], int contextSwitch)
 {
         int y;
@@ -460,5 +554,19 @@ int main()
         fillMemValues(k, processes);
         fillCpuValues(k, processes);
         fifoQuad(k, processes, contextSwitch);
+
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
+                processes[x]->running = false;
+        }
+
+        fillPIDs(k, processes);
+        fillMemValues(k, processes);
+        fillCpuValues(k, processes);
+        SJFQuad(k, processes, contextSwitch);
         return 0;
 }
