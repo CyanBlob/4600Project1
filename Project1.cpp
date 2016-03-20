@@ -119,7 +119,7 @@ int incrementX(int x, int amount, int k, Process *processes[])
         for (y = 0; y < k; y++)
         {
 
-                if(processes[y]->cpu != 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+                if(processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
                 {
                         processes[y]->waitTime += amount;
                 }
@@ -143,10 +143,10 @@ void SJF(int k, Process *processes[], int contextSwitch)
 
         while(true)
         {
-            for(w = 0; w < k; w++)
+                for(w = 0; w < k; w++)
                 {
-                    if(processes[shortest]->cpu == 0)
-                        shortest = (shortest + 1) % k;
+                        if(processes[shortest]->cpu == 0)
+                                shortest = (shortest + 1) % k;
                 }
                 //Find the shortest process that has arrived
                 for(z = 0; z < k; z++)
@@ -205,35 +205,33 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
         //Find next ready process
         while(true)
         {
+                //If the current process is not ready to run
                 if(processes[currentProcess]->enterTime > x || processes[currentProcess]->cpu == 0)
                 {
                         if(0 == currentProcess)
                         {
+                                //If we got through all processes and nothing was able to run, stall
                                 if(oneRan == false)
                                 {
-                                        //currentProcess = (currentProcess + 1) % k;
-                                        //cout<<"No process ready "<<x<<endl;
-                                        //x += 50;
-                                        //processes[y]->running = true;
-                                        for (w = 0; w < quantum; w++)
-                                        {
-                                                x = incrementX(x, 1, k, processes);
-                                        }
-                                        //processes[y]->running = false;
+
+                                        x = incrementX(x, 1, k, processes);
                                 }
                                 oneRan = false;
                         }
-                        else
-                        {
-                                //currentProcess = (currentProcess + 1) % k;
-                        }
+
+                        //Look at the next process
                         currentProcess = (currentProcess + 1) % k;
                 }
+
                 else
                 {
+                        //If the current process has time remaining, subtract the quantum
                         if(processes[currentProcess]->cpu != 0)
+                        {
                                 processes[currentProcess]->cpu -= quantum;
+                        }
 
+                        //Don't allow negative time remaining
                         if (processes[currentProcess]->cpu <= 0)
                         {
                                 processes[currentProcess]->cpu = 0;
@@ -249,6 +247,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 {
                                         break;
                                 }
+                                //If all processes have 0 cpu time left, end
                                 if(y == k - 1)
                                 {
                                         for(y = 0; y < k; y++)
@@ -258,6 +257,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 }
                         }
 
+                        //If we switched processes, add a context switch
                         if(lastProcess != currentProcess)
                         {
                                 switches++;
@@ -265,9 +265,11 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 //cout<<"SWITCHING "<<x<<endl;
                         }
 
+                        //Keep track of the last process to run, and mark that one ran this iteration
                         lastProcess = currentProcess;
                         oneRan = true;
 
+                        //Add wait time to all processes that aren't running
                         processes[y]->running = true;
                         for (w = 0; w < quantum; w++)
                         {
@@ -277,6 +279,173 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                         currentProcess = (currentProcess + 1) % k;
                 }
         }
+}
+
+void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
+{
+        int w;
+        int y;
+        int x = 0;
+        int end = 0;
+        int switches = 0;
+        int processCount = 0;
+        int contextCounter = 0;
+        int lastAdded = 0;
+
+        cout<<"STARTING RR - QUAD"<<endl;
+
+        for(y = 0; y < k; y++)
+                cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
+
+        while (true)
+        {
+                //Pick all processes to run
+                for(y = 0; y < k; y++)
+                {
+                        w = (y + end) % k;
+                        //cout<<"Pick processes "<<processCount<<" x: "<<x<<endl;
+                        if(processCount < 4 && processes[w]->cpu > 0 && processes[w]->enterTime <= x)
+                        {
+                                processes[w]->running = true;
+                                //cout<<w+1<<" ";
+                                processCount++;
+                                lastAdded = w;
+                        }
+                        if(y == k - 1 && processCount == 0)
+                        {
+                                for(y = 0; y < k; y++)
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
+                }
+                switches++;
+                x = incrementX(x, contextSwitch, k, processes);
+                //cout<<"Last added: " <<lastAdded + 1<<" x: " << x << " Switches: " <<switches<<endl;
+                /*for(y = 0; y < k; y++)
+                {
+                    if(processes[y]->running == true)
+                        cout<<y+1<<" ";
+                }*/
+                //cout<<endl;
+                for(y = 0; y < k; y++)
+                {
+                    processes[y]->wasRunning = false;
+                }
+
+                end = (lastAdded + 1) % k;
+                //cout<<processCount<<endl;
+
+                //Run all chosen processes
+                for(y = 0; y < k; y++)
+                {
+                        if(processes[y]->running)
+                        {
+                                processes[y]->cpu -= 50;
+                        }
+                }
+
+                //Add wait time
+                for(w = 0; w < 50; w++)
+                {
+                        x = incrementX(x, 1, k, processes);
+                }
+
+                processCount = 0;
+                for(y = 0; y < k; y++)
+                {
+                        if(processes[y]->running == true)
+                        {
+                            processes[y]->running = false;
+                            processes[y]->wasRunning = true;
+                        }
+                }
+
+                //Check if we're finished
+                for (y = 0; y < k; y++)
+                {
+                        if(processes[y]->cpu != 0)
+                                break;
+                        else if(y == k - 1)
+                        {
+                                for(y = 0; y < k; y++)
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
+                }
+        }
+
+
+
+
+
+        //Loop through all processes
+        /*while(true)
+           {
+                for (y = 0; y < k; y++)
+                {
+                        if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+                        {
+                                cout<<"PROCESS COUNTER IF"<<endl;
+
+                                contextCounter++;
+                                if(contextCounter > 4for(w = 0; w < 50; w++))
+                                {
+                                        x = incrementX(x, contextSwitch, k, processes);
+                                        switches++;
+                                }
+                                processCount++;
+                                processes[y]->running = true;
+                        }
+                        //cout<<"Process count: "<<processCount<<endl;
+
+                        if(processes[y]->running)
+                        {
+                                cout<<"RUNNING IF"<<endl;
+
+                                processes[y]->cpu -= 50;
+
+                                //If process is finished
+                                if(processes[y]->cpu <= 0)
+                                {
+                                        cout<<"CPU <=0 IF"<<endl;
+                                        processCount--;
+                                        //processes[y]->running = false;
+                                        //processes[(y + 4) % k]->running = true;
+                                        break;
+                                }
+
+                        }
+                }
+
+                for(w = 0; w < 50; w++)
+                {
+                        x = incrementX(x, 1, k, processes);
+                }
+                for (y = 0; y < k; y++)
+                {
+                        if(processes[y]->running)
+                        {
+                                processes[y]->running = false;
+                                //processes[(y + 4) % k]->running = true;
+                        }
+                }
+
+                for (y = 0; y < k; y++)
+                {
+                        cout<<"END LOOP"<<" PROCESS COUNT: "<<processCount<<endl;
+                        if(processes[y]->cpu != 0)
+                                break;
+                        else if(y == k - 1)
+                        {
+                                for(y = 0; y < k; y++)
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
+                }
+           }*/
 
 }
 
@@ -331,97 +500,97 @@ void fifo(int k, Process *processes[], int contextSwitch)
 
 void SJFQuad(int k, Process *processes[], int contextSwitch)
 {
-    int y;
-    int x = 0;
-    int w = 0;
-    int shortest = 0;
-    int largest = 0;
-    int switches = 0;
-    int processCount = 0;
-    int contextCounter = 0;
+        int y;
+        int x = 0;
+        int w = 0;
+        int shortest = 0;
+        int largest = 0;
+        int switches = 0;
+        int processCount = 0;
+        int contextCounter = 0;
 
-    cout<<"STARTING FIFO - QUAD"<<endl;
+        cout<<"STARTING SJF - QUAD"<<endl;
 
-    for(y = 0; y < k; y++)
-            cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
+        for(y = 0; y < k; y++)
+                cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
 
-    //Loop through all processes
-    while(true)
-    {
-        for (y = 0; y < k; y++)
+        //Loop through all processes
+        while(true)
         {
-            //cout<<"PROCESS COUNT = "<<processCount<<" PROCESS " << y << " CPU = " << processes[y]->cpu<<" PROCESS " << y << " RUNNING = " << processes[y]->running<<endl;
-            if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
-            {
-                //cout<<"THAT IF"<<endl;
-                contextCounter++;
-                if(contextCounter > 4)
+                for (y = 0; y < k; y++)
                 {
-                    x = incrementX(x, contextSwitch, k, processes);
-                    switches++;
-                }
-                processCount++;
-                //processes[y]->running = true;
-                for(w = 0; w < k; w++)
-                {
-                    if(processes[w]->cpu >= processes[largest]->cpu)
-                    {
-                        largest = w;
-                    }
-                }
-                shortest = largest;
-                //cout<<"FOUND SHORTEST(LARGEST). LARGEST = "<< largest <<endl;
+                        //cout<<"PROCESS COUNT = "<<processCount<<" PROCESS " << y << " CPU = " << processes[y]->cpu<<" PROCESS " << y << " RUNNING = " << processes[y]->running<<endl;
+                        if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+                        {
+                                //cout<<"THAT IF"<<endl;
+                                contextCounter++;
+                                if(contextCounter > 4)
+                                {
+                                        x = incrementX(x, contextSwitch, k, processes);
+                                        switches++;
+                                }
+                                processCount++;
+                                //processes[y]->running = true;
+                                for(w = 0; w < k; w++)
+                                {
+                                        if(processes[w]->cpu >= processes[largest]->cpu)
+                                        {
+                                                largest = w;
+                                        }
+                                }
+                                shortest = largest;
+                                //cout<<"FOUND SHORTEST(LARGEST). LARGEST = "<< largest <<endl;
 
-                for(w = 0; w < k; w++)
-                {
-                    if(processes[w]->cpu <= processes[shortest]->cpu && processes[w]->cpu > 0 && processes[w]->enterTime <= x && processes[w]->running == false)
-                    {
-                        //cout<<"FINDING SHORTEST"<<endl;
-                        shortest = w;
-                        //processes[w]->running = true;
-                    }
+                                for(w = 0; w < k; w++)
+                                {
+                                        if(processes[w]->cpu <= processes[shortest]->cpu && processes[w]->cpu > 0 && processes[w]->enterTime <= x && processes[w]->running == false)
+                                        {
+                                                //cout<<"FINDING SHORTEST"<<endl;
+                                                shortest = w;
+                                                //processes[w]->running = true;
+                                        }
+                                }
+                                //cout<<"FOUND SHORTEST. W = "<< w <<endl;
+                                processes[shortest]->running = true;
+                                //cout<<"AFTER TRUE"<<endl;
+                        }
                 }
-                //cout<<"FOUND SHORTEST. W = "<< w <<endl;
-                processes[shortest]->running = true;
-                //cout<<"AFTER TRUE"<<endl;
-            }
+                for (y = 0; y < k; y++)
+                {
+                        //cout<<"SECOND LOOP"<<endl;
+                        if(processes[y]->running)
+                        {
+                                //cout<<"FIRST IF"<<endl;
+                                processes[y]->cpu--;
+                                if(processes[y]->cpu == 0)
+                                {
+                                        //cout<<"SECOND IF"<<endl;
+                                        //cout<<"FINISHED PROCESS"<<endl;
+                                        processCount--;
+                                        processes[y]->running = false;
+                                        break;
+                                }
+
+                        }
+                }
+
+
+                x = incrementX(x, 1, k, processes);
+
+
+                for (y = 0; y < k; y++)
+                {
+                        if(processes[y]->cpu != 0)
+                                break;
+                        else if(y == k - 1)
+                        {
+                                for(y = 0; y < k; y++)
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
+                }
         }
-        for (y = 0; y < k; y++)
-        {
-            //cout<<"SECOND LOOP"<<endl;
-            if(processes[y]->running)
-            {
-                //cout<<"FIRST IF"<<endl;
-                processes[y]->cpu--;
-                if(processes[y]->cpu == 0)
-                {
-                    //cout<<"SECOND IF"<<endl;
-                    //cout<<"FINISHED PROCESS"<<endl;
-                    processCount--;
-                    processes[y]->running = false;
-                    break;
-                }
-
-            }
-        }
-
-
-        x = incrementX(x, 1, k, processes);
-
-
-        for (y = 0; y < k; y++)
-        {
-            if(processes[y]->cpu != 0)
-                break;
-            else if(y == k - 1)
-            {
-                    for(y = 0; y < k; y++)
-                            cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-                    cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
-                    return;
-            }
-        }
-    }
 
 }
 void fifoQuad(int k, Process *processes[], int contextSwitch)
@@ -440,48 +609,48 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
         //Loop through all processes
         while(true)
         {
-            for (y = 0; y < k; y++)
-            {
-                if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+                for (y = 0; y < k; y++)
                 {
-                    contextCounter++;
-                    if(contextCounter > 4)
-                    {
-                        x = incrementX(x, contextSwitch, k, processes);
-                        switches++;
-                    }
-                    processCount++;
-                    processes[y]->running = true;
+                        if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+                        {
+                                contextCounter++;
+                                if(contextCounter > 4)
+                                {
+                                        x = incrementX(x, contextSwitch, k, processes);
+                                        switches++;
+                                }
+                                processCount++;
+                                processes[y]->running = true;
+                        }
+
+                        if(processes[y]->running)
+                        {
+                                processes[y]->cpu--;
+                                if(processes[y]->cpu == 0)
+                                {
+                                        processCount--;
+                                        processes[y]->running = false;
+                                        break;
+                                }
+
+                        }
                 }
 
-                if(processes[y]->running)
+                x = incrementX(x, 1, k, processes);
+
+
+                for (y = 0; y < k; y++)
                 {
-                    processes[y]->cpu--;
-                    if(processes[y]->cpu == 0)
-                    {
-                        processCount--;
-                        processes[y]->running = false;
-                        break;
-                    }
-
+                        if(processes[y]->cpu != 0)
+                                break;
+                        else if(y == k - 1)
+                        {
+                                for(y = 0; y < k; y++)
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
                 }
-            }
-
-            x = incrementX(x, 1, k, processes);
-
-
-            for (y = 0; y < k; y++)
-            {
-                if(processes[y]->cpu != 0)
-                    break;
-                else if(y == k - 1)
-                {
-                        for(y = 0; y < k; y++)
-                                cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-                        cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
-                        return;
-                }
-            }
         }
 
 }
@@ -489,7 +658,7 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
 int main()
 {
 
-        int k = 5;
+        int k = 50;
         int x;
 
         int quantum = 50;
@@ -568,5 +737,20 @@ int main()
         fillMemValues(k, processes);
         fillCpuValues(k, processes);
         SJFQuad(k, processes, contextSwitch);
+
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
+                processes[x]->running = false;
+                processes[x]->wasRunning = false;
+        }
+
+        fillPIDs(k, processes);
+        fillMemValues(k, processes);
+        fillCpuValues(k, processes);
+        roundRobinQuad(k, processes, quantum, contextSwitch);
         return 0;
 }

@@ -10,4 +10,5 @@ class Process
         bool isWaiting;
         bool running;
         bool arrived;
+        bool wasRunning;
 };
