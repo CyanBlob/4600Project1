@@ -112,14 +112,14 @@ void fillPIDs(int k, Process *processes[])
         }
 }
 
-int incrementX(int x, int amount, int k, Process *processes[], int currentProcess)
+int incrementX(int x, int amount, int k, Process *processes[])
 {
         int y;
 
         for (y = 0; y < k; y++)
         {
 
-                if(processes[y]->cpu != 0 && processes[y]->enterTime <= x && y != currentProcess)
+                if(processes[y]->cpu != 0 && processes[y]->enterTime <= x && processes[y]->running == false)
                 {
                         processes[y]->waitTime += amount;
                 }
@@ -161,10 +161,12 @@ void SJF(int k, Process *processes[], int contextSwitch)
                 while(true)
                 {
                         //Process is running and adding wait time to other processes that have arrived
+                        processes[shortest]->running = true;
                         for(w = 0; w < processes[shortest]->cpu; w++)
                         {
-                                x = incrementX(x, 1, k, processes, shortest);
+                                x = incrementX(x, 1, k, processes);
                         }
+                        processes[shortest]->running = false;
                         processes[shortest]->cpu = 0;
                         //y++;
                         break;
@@ -180,7 +182,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
                 else
                 {
                         switches++;
-                        x = incrementX(x, contextSwitch, k, processes, shortest);
+                        x = incrementX(x, contextSwitch, k, processes);
                 }
                 y++;
         }
@@ -213,8 +215,12 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                         //currentProcess = (currentProcess + 1) % k;
                                         //cout<<"No process ready "<<x<<endl;
                                         //x += 50;
+                                        //processes[y]->running = true;
                                         for (w = 0; w < quantum; w++)
-                                                x = incrementX(x, 1, k, processes, currentProcess);
+                                        {
+                                                x = incrementX(x, 1, k, processes);
+                                        }
+                                        //processes[y]->running = false;
                                 }
                                 oneRan = false;
                         }
@@ -256,15 +262,19 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                         if(lastProcess != currentProcess)
                         {
                                 switches++;
-                                x = incrementX(x, contextSwitch, k, processes, currentProcess);
+                                x = incrementX(x, contextSwitch, k, processes);
                                 //cout<<"SWITCHING "<<x<<endl;
                         }
 
                         lastProcess = currentProcess;
                         oneRan = true;
 
+                        processes[y]->running = true;
                         for (w = 0; w < quantum; w++)
-                                x = incrementX(x, 1, k, processes, currentProcess);
+                        {
+                                x = incrementX(x, 1, k, processes);
+                        }
+                        processes[y]->running = false;
                         currentProcess = (currentProcess + 1) % k;
                 }
         }
@@ -291,14 +301,16 @@ void fifo(int k, Process *processes[], int contextSwitch)
                 {
                         if(processes[y]->enterTime > x)
                         {
-                                x = incrementX(x, 1, k, processes, y);
+                                x = incrementX(x, 1, k, processes);
                         }
                         else
                         {
+                                processes[y]->running = true;
                                 for(w = 0; w < processes[y]->cpu; w++)
                                 {
-                                        x = incrementX(x, 1, k, processes, y);
+                                        x = incrementX(x, 1, k, processes);
                                 }
+                                processes[y]->running = false;
                                 processes[y]->cpu = 0;
                                 break;
                         }
@@ -313,15 +325,73 @@ void fifo(int k, Process *processes[], int contextSwitch)
                 else
                 {
                         switches++;
-                        x = incrementX(x, contextSwitch, k, processes, y);
+                        x = incrementX(x, contextSwitch, k, processes);
                 }
         }
+}
+
+void fifoQuad(int k, Process *processes[], int contextSwitch)
+{
+        int w;
+        int y;
+        int x = 0;
+        int switches = 0;
+        int processCount = 0;
+        int contextCounter = 0;
+
+        cout<<"STARTING FIFO - QUAD"<<endl;
+
+        for(y = 0; y < k; y++)
+                cout<<"    PROCESS "<<y<<"  CPU: "<<processes[y]->cpu<<endl;
+
+        //Loop through all processes
+        while(true)
+        {
+            for (y = 0; y < k; y++)
+            {
+                if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+                {
+                    contextCounter++;
+                    if(contextCounter > 4)
+                    {
+                        x = incrementX(x, contextSwitch, k, processes);
+                        switches++;
+                    }
+                    processCount++;
+                    processes[y]->running = true;
+                }
+
+                if(processes[y]->running)
+                {
+                    processes[y]->cpu--;
+                    if(processes[y]->cpu == 0)
+                    {
+                        processCount--;
+                        processes[y]->running = false;
+                    }
+                }
+            }
+            x = incrementX(x, 1, k, processes);
+            for (y = 0; y < k; y++)
+            {
+                if(processes[y]->cpu != 0)
+                    break;
+                else if(y == k - 1)
+                {
+                        for(y = 0; y < k; y++)
+                                cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                        cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                        return;
+                }
+            }
+        }
+
 }
 
 int main()
 {
 
-        int k = 5;
+        int k = 9;
         int x;
 
         int quantum = 50;
@@ -369,5 +439,18 @@ int main()
         fillMemValues(k, processes);
         fillCpuValues(k, processes);
         SJF(k, processes, contextSwitch);
+
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
+        }
+
+        fillPIDs(k, processes);
+        fillMemValues(k, processes);
+        fillCpuValues(k, processes);
+        fifoQuad(k, processes, contextSwitch);
         return 0;
 }
