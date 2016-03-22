@@ -112,6 +112,7 @@ void fillPIDs(int k, Process *processes[], int seed)
         }
 }
 
+//Increment x and add waittime to every process that is waiting
 int incrementX(int x, int amount, int k, Process *processes[])
 {
         int y;
@@ -243,8 +244,6 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
 
                         }
 
-                        //cout<<"PROCESS "<<currentProcess<<"  CPU: "<<processes[currentProcess]->cpu<<endl;
-
                         //Check if there are no CPU processes
                         for (y = 0; y < k; y++)
                         {
@@ -310,15 +309,17 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                 //Pick all processes to run
                 for(y = 0; y < k; y++)
                 {
+                        //Change focus to the group of 4 after the last process we chose last time
                         w = (y + end) % k;
-                        //cout<<"Pick processes "<<processCount<<" x: "<<x<<endl;
+
                         if(processCount < 4 && processes[w]->cpu > 0 && processes[w]->enterTime <= x)
                         {
                                 processes[w]->running = true;
-                                //cout<<w+1<<" ";
                                 processCount++;
                                 lastAdded = w;
                         }
+
+                        //Check if we're done
                         if(y == k - 1 && processCount == 0)
                         {
                                 for(y = 0; y < k; y++)
@@ -330,16 +331,19 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                                 return;
                         }
                 }
+
+                //Add one switch every round - Processes are shifted to the next CPU every time
                 switches++;
                 x = incrementX(x, contextSwitch, k, processes);
 
+                //Reset or wasRunning flag
                 for(y = 0; y < k; y++)
                 {
                         processes[y]->wasRunning = false;
                 }
 
+                //Keep track of where we left off
                 end = (lastAdded + 1) % k;
-                //cout<<processCount<<endl;
 
                 //Run all chosen processes
                 for(y = 0; y < k; y++)
@@ -356,6 +360,7 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         x = incrementX(x, 1, k, processes);
                 }
 
+                //Reset the process counter, and keep track of all processes that ran
                 processCount = 0;
                 for(y = 0; y < k; y++)
                 {
@@ -366,22 +371,6 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         }
                 }
 
-                //Check if we're finished
-                for (y = 0; y < k; y++)
-                {
-                        if(processes[y]->cpu != 0)
-                                break;
-                        else if(y == k - 1)
-                        {
-                                for(y = 0; y < k; y++)
-                                {
-                                        totalWait += processes[y]->waitTime;
-                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-                                }
-                                cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
-                                return;
-                        }
-                }
         }
 
 
@@ -406,10 +395,13 @@ void fifo(int k, Process *processes[], int contextSwitch)
 
                 while(true)
                 {
+                        //If the current process is not ready to run, stall
                         if(processes[y]->enterTime > x)
                         {
                                 x = incrementX(x, 1, k, processes);
                         }
+
+                        //Run the process to completion, adding wait time to waiting processes
                         else
                         {
                                 processes[y]->running = true;
@@ -422,6 +414,8 @@ void fifo(int k, Process *processes[], int contextSwitch)
                                 break;
                         }
                 }
+
+                //Check if we're done
                 if(y == k - 1)
                 {
                         for(y = 0; y < k; y++)
@@ -432,6 +426,8 @@ void fifo(int k, Process *processes[], int contextSwitch)
                         cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
                         return;
                 }
+
+                //Add a context switch
                 else
                 {
                         switches++;
@@ -462,10 +458,8 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
         {
                 for (y = 0; y < k; y++)
                 {
-                        //cout<<"PROCESS COUNT = "<<processCount<<" PROCESS " << y << " CPU = " << processes[y]->cpu<<" PROCESS " << y << " RUNNING = " << processes[y]->running<<endl;
                         if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
                         {
-                                //cout<<"THAT IF"<<endl;
                                 contextCounter++;
                                 if(contextCounter > 4)
                                 {
@@ -473,7 +467,8 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                                         switches++;
                                 }
                                 processCount++;
-                                //processes[y]->running = true;
+
+                                //Find the largest process so that we have a good starting point for finding the smallest remaining process
                                 for(w = 0; w < k; w++)
                                 {
                                         if(processes[w]->cpu >= processes[largest]->cpu)
@@ -482,33 +477,28 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                                         }
                                 }
                                 shortest = largest;
-                                //cout<<"FOUND SHORTEST(LARGEST). LARGEST = "<< largest <<endl;
 
+                                //Find the smallest remaining process
                                 for(w = 0; w < k; w++)
                                 {
                                         if(processes[w]->cpu <= processes[shortest]->cpu && processes[w]->cpu > 0 && processes[w]->enterTime <= x && processes[w]->running == false)
                                         {
-                                                //cout<<"FINDING SHORTEST"<<endl;
                                                 shortest = w;
-                                                //processes[w]->running = true;
                                         }
                                 }
-                                //cout<<"FOUND SHORTEST. W = "<< w <<endl;
+
                                 processes[shortest]->running = true;
-                                //cout<<"AFTER TRUE"<<endl;
                         }
                 }
+
+                //Progress the current processes, removing them when they're done
                 for (y = 0; y < k; y++)
                 {
-                        //cout<<"SECOND LOOP"<<endl;
                         if(processes[y]->running)
                         {
-                                //cout<<"FIRST IF"<<endl;
                                 processes[y]->cpu--;
                                 if(processes[y]->cpu == 0)
                                 {
-                                        //cout<<"SECOND IF"<<endl;
-                                        //cout<<"FINISHED PROCESS"<<endl;
                                         processCount--;
                                         processes[y]->running = false;
                                         break;
@@ -517,10 +507,11 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                         }
                 }
 
-
+                //Increment x and add wait time to all waiting processes
                 x = incrementX(x, 1, k, processes);
 
 
+                //Check if we're done
                 for (y = 0; y < k; y++)
                 {
                         if(processes[y]->cpu != 0)
@@ -558,8 +549,10 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
         {
                 for (y = 0; y < k; y++)
                 {
+                        //Pick our processes. Find a new process every time there is one available and there is a CPU core available
                         if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
                         {
+                                //Add context switches every time we add a new process, excluding the first 4
                                 contextCounter++;
                                 if(contextCounter > 4)
                                 {
@@ -570,6 +563,7 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                                 processes[y]->running = true;
                         }
 
+                        //Progress the running processes, removing them when they're done
                         if(processes[y]->running)
                         {
                                 processes[y]->cpu--;
@@ -583,9 +577,10 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                         }
                 }
 
+                //Increment x and add wait time to all waiting processes
                 x = incrementX(x, 1, k, processes);
 
-
+                //Check if we're done
                 for (y = 0; y < k; y++)
                 {
                         if(processes[y]->cpu != 0)
@@ -633,11 +628,13 @@ int main()
         int quantum = 50;
         int contextSwitch = 10;
 
+        //Pick a new seed to be used for every scheduling method
         srand (time(NULL));
-
         int seed = rand();
 
         Process *processes[k];
+
+        //Run all scheduling method, recreating the processes every time
 
         generateProcesses(k, processes, seed);
         roundRobin(k, processes, quantum, contextSwitch);
