@@ -136,7 +136,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
         int w = 0, y = 0, z = 0, x = 0; //Loop counters
         int shortest = 0;
         int switches = 0;
-		int totalWait = 0;
+        int totalWait = 0;
 
         cout<<"STARTING SJF"<<endl;
         for(z = 0; z < k; z++)
@@ -175,10 +175,10 @@ void SJF(int k, Process *processes[], int contextSwitch)
                 if(y == k - 1)
                 {
                         for(y = 0; y < k; y++)
-						{
-							totalWait += processes[y]->waitTime;
+                        {
+                                totalWait += processes[y]->waitTime;
                                 cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-						}
+                        }
                         cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
                         return;
                 }
@@ -200,7 +200,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
         int lastProcess = 0;
         int switches = 0;
         bool oneRan = false;
-		int totalWait = 0;
+        int totalWait = 0;
 
         cout<<"STARTING RR"<<endl;
 
@@ -254,15 +254,15 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 }
                                 //If all processes have 0 cpu time left, end
                                 if(y == k - 1)
-                {
-								for(y = 0; y < k; y++)
-								{
-									totalWait += processes[y]->waitTime;
-										cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-								}
-								cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
-								return;
-						}
+                                {
+                                        for(y = 0; y < k; y++)
+                                        {
+                                                totalWait += processes[y]->waitTime;
+                                                cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                        }
+                                        cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
+                                        return;
+                                }
                         }
 
                         //If we switched processes, add a context switch
@@ -298,7 +298,7 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
         int switches = 0;
         int processCount = 0;
         int lastAdded = 0;
-		int totalWait = 0;
+        int totalWait = 0;
 
         cout<<"STARTING RR - QUAD"<<endl;
 
@@ -322,8 +322,11 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         if(y == k - 1 && processCount == 0)
                         {
                                 for(y = 0; y < k; y++)
+                                {
+                                        totalWait += processes[y]->waitTime;
                                         cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-                                cout<<"TOTAL RUNTIME: "<<x<<" SWITCHES: "<<switches<<endl<<endl;
+                                }
+                                cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
                                 return;
                         }
                 }
@@ -332,7 +335,7 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
 
                 for(y = 0; y < k; y++)
                 {
-                    processes[y]->wasRunning = false;
+                        processes[y]->wasRunning = false;
                 }
 
                 end = (lastAdded + 1) % k;
@@ -358,8 +361,8 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                 {
                         if(processes[y]->running == true)
                         {
-                            processes[y]->running = false;
-                            processes[y]->wasRunning = true;
+                                processes[y]->running = false;
+                                processes[y]->wasRunning = true;
                         }
                 }
 
@@ -369,15 +372,15 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         if(processes[y]->cpu != 0)
                                 break;
                         else if(y == k - 1)
-						{
-								for(y = 0; y < k; y++)
-								{
-									totalWait += processes[y]->waitTime;
-										cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-								}
-								cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
-								return;
-						}
+                        {
+                                for(y = 0; y < k; y++)
+                                {
+                                        totalWait += processes[y]->waitTime;
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                }
+                                cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
                 }
         }
 
@@ -390,7 +393,7 @@ void fifo(int k, Process *processes[], int contextSwitch)
         int y;
         int x = 0;
         int switches = 0;
-		int totalWait = 0;
+        int totalWait = 0;
 
         cout<<"STARTING FIFO"<<endl;
 
@@ -422,10 +425,10 @@ void fifo(int k, Process *processes[], int contextSwitch)
                 if(y == k - 1)
                 {
                         for(y = 0; y < k; y++)
-						{
-							totalWait += processes[y]->waitTime;
+                        {
+                                totalWait += processes[y]->waitTime;
                                 cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-						}
+                        }
                         cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
                         return;
                 }
@@ -447,7 +450,7 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
         int switches = 0;
         int processCount = 0;
         int contextCounter = 0;
-		int totalWait = 0;
+        int totalWait = 0;
 
         cout<<"STARTING SJF - QUAD"<<endl;
 
@@ -523,15 +526,15 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                         if(processes[y]->cpu != 0)
                                 break;
                         else if(y == k - 1)
-						{
-								for(y = 0; y < k; y++)
-								{
-									totalWait += processes[y]->waitTime;
-										cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-								}
-								cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
-								return;
-						}
+                        {
+                                for(y = 0; y < k; y++)
+                                {
+                                        totalWait += processes[y]->waitTime;
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                }
+                                cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
                 }
         }
 
@@ -543,7 +546,7 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
         int switches = 0;
         int processCount = 0;
         int contextCounter = 0;
-		int totalWait = 0;
+        int totalWait = 0;
 
         cout<<"STARTING FIFO - QUAD"<<endl;
 
@@ -588,15 +591,15 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                         if(processes[y]->cpu != 0)
                                 break;
                         else if(y == k - 1)
-						{
-								for(y = 0; y < k; y++)
-								{
-									totalWait += processes[y]->waitTime;
-										cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
-								}
-								cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
-								return;
-						}
+                        {
+                                for(y = 0; y < k; y++)
+                                {
+                                        totalWait += processes[y]->waitTime;
+                                        cout<<"    PROCESS "<<y<<" WAITTIME: "<<processes[y]->waitTime<<endl;
+                                }
+                                cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME "<< totalWait / k<<" SWITCHES: "<<switches<<endl<<endl;
+                                return;
+                        }
                 }
         }
 
@@ -604,27 +607,27 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
 
 void generateProcesses(int k, Process *processes[])
 {
-    int x;
+        int x;
 
-    for(x = 0; x < k; x++)
-    {
-            processes[x] = new Process();
-            processes[x]->enterTime = x * 50;
-            processes[x]->waitTime = 0;
-            processes[x]->arrived = false;
-            processes[x]->running = false;
-            processes[x]->wasRunning = false;
-    }
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->waitTime = 0;
+                processes[x]->arrived = false;
+                processes[x]->running = false;
+                processes[x]->wasRunning = false;
+        }
 
-    fillPIDs(k, processes);
-    fillMemValues(k, processes);
-    fillCpuValues(k, processes);
+        fillPIDs(k, processes);
+        fillMemValues(k, processes);
+        fillCpuValues(k, processes);
 }
 
 int main()
 {
 
-        int k = 50;
+        int k = 5;
 
         int quantum = 50;
         int contextSwitch = 10;
