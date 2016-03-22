@@ -623,7 +623,7 @@ void generateProcesses(int k, Process *processes[], int seed)
 int main()
 {
 
-        int k = 5;
+        int k = 50;
 
         int quantum = 50;
         int contextSwitch = 10;
@@ -636,7 +636,7 @@ int main()
 
         //Run all scheduling method, recreating the processes every time
 
-        generateProcesses(k, processes, seed);
+        generatePr//Increment x and add wait time to all waiting processesocesses(k, processes, seed);
         roundRobin(k, processes, quantum, contextSwitch);
 
         generateProcesses(k, processes, seed);
