@@ -164,11 +164,21 @@ void SJF(int k, Process *processes[], int contextSwitch)
                 {
                         //Process is running and adding wait time to other processes that have arrived
                         processes[shortest]->running = true;
+
+			//Print process begin time
+			cout<<"PROCESS " << shortest;
+			if(shortest < 10)
+				cout << " ";
+			cout << " BEGINNING AT TIME " << x<<endl;
+  
                         for(w = 0; w < processes[shortest]->cpu; w++)
                         {
                                 x = incrementX(x, 1, k, processes);
                         }
                         processes[shortest]->running = false;
+
+			//Print process end time
+			cout<<"PROCESS " << y << "  ENDING AT TIME " << x<<endl;
                         processes[shortest]->cpu = 0;
                         //y++;
                         break;
@@ -279,11 +289,22 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
 
                         //Add wait time to all processes that aren't running
                         processes[y]->running = true;
+
+ 			/*//Print process begin time
+                        cout<<"PROCESS " << y;
+                        if(y < 10)
+                                cout << " ";
+                        cout << " BEGINNING AT TIME " << x;
+			*/
                         for (w = 0; w < quantum; w++)
                         {
                                 x = incrementX(x, 1, k, processes);
                         }
                         processes[y]->running = false;
+
+			//Print process end time
+                        //cout<<" ------ ENDING AT TIME " << x<<endl;
+
                         currentProcess = (currentProcess + 1) % k;
                 }
         }
@@ -316,6 +337,13 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         if(processCount < 4 && processes[w]->cpu > 0 && processes[w]->enterTime <= x)
                         {
                                 processes[w]->running = true;
+
+				/*//Print process begin time
+                	        cout<<"PROCESS " << y;
+        	                if(y < 10)
+                        	        cout << " ";
+	                        cout << " BEGINNING AT TIME " << x;
+				*/
                                 processCount++;
                                 lastAdded = w;
                         }
@@ -368,6 +396,10 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         if(processes[y]->running == true)
                         {
                                 processes[y]->running = false;
+
+				//Print process end time
+                        	//cout<<" ------ ENDING AT TIME " << x<<endl;
+
                                 processes[y]->wasRunning = true;
                         }
                 }
@@ -406,11 +438,26 @@ void fifo(int k, Process *processes[], int contextSwitch)
                         else
                         {
                                 processes[y]->running = true;
-                                for(w = 0; w < processes[y]->cpu; w++)
+			
+				//Print process begin time
+                        	cout<<"PROCESS " << y;
+                        	if(y < 10)
+                                	cout << " ";
+                        	cout << " BEGINNING AT TIME " << x<<endl;
+                                
+				for(w = 0; w < processes[y]->cpu; w++)
                                 {
                                         x = incrementX(x, 1, k, processes);
                                 }
                                 processes[y]->running = false;
+
+				//Print process end time
+	                        cout<<"PROCESS " << y;
+                                if(y < 10)
+                                        cout << " ";
+                                cout << " ENDING AT TIME " << x<<endl;
+
+
                                 processes[y]->cpu = 0;
                                 break;
                         }
@@ -489,6 +536,12 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                                 }
 
                                 processes[shortest]->running = true;
+
+				//Print process begin time
+                        	cout<<"PROCESS " << y;
+                        	if(y < 10)
+                                	cout << " ";
+                        	cout << " BEGINNING AT TIME " << x<<endl;
                         }
                 }
 
@@ -502,6 +555,13 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                                 {
                                         processCount--;
                                         processes[y]->running = false;
+
+					//Print process end time
+                        		cout<<"PROCESS " << y;
+	                                if(y < 10)
+        	                                cout << " ";
+                	                cout << " ENDING AT TIME " << x<<endl;
+
                                         break;
                                 }
 
@@ -562,6 +622,13 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                                 }
                                 processCount++;
                                 processes[y]->running = true;
+
+				 //Print process begin time
+                        	cout<<"PROCESS " << y;
+                	        if(y < 10)
+        	                        cout << " ";
+	                        cout << " BEGINNING AT TIME " << x<<endl;
+
                         }
 
                         //Progress the running processes, removing them when they're done
@@ -572,6 +639,13 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                                 {
                                         processCount--;
                                         processes[y]->running = false;
+
+					//Print process end time
+                        		cout<<"PROCESS " << y;
+                	                if(y < 10)
+        	                                cout << " ";
+	                                cout << " BEGINNING AT TIME " << x<<endl;
+
                                         break;
                                 }
 
