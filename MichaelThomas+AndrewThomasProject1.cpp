@@ -167,7 +167,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
                         cout<<"PROCESS " << shortest;
                         if(shortest < 10)
                                 cout << " ";
-                        cout << " BEGINNING AT TIME " << x<<endl;
+                        cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[shortest]->cpu<< " / " << processes[shortest]->cpuStart<<endl;
 
                         for(w = 0; w < processes[shortest]->cpu; w++)
                         {
@@ -296,7 +296,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                         cout<<"PROCESS " << currentProcess;
                         if(y < 10)
                                 cout << " ";
-                        cout << " BEGINNING AT TIME " << x<<endl;
+                        cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[currentProcess]->cpu<< " / " << processes[currentProcess]->cpuStart<<endl;
 
                         for (w = 0; w < quantum; w++)
                         {
@@ -310,7 +310,7 @@ void roundRobin(int k, Process *processes[], int quantum, int contextSwitch)
                                 cout<<"        PROCESS " << currentProcess;
                                 if(y < 10)
                                         cout << " ";
-                                cout << " ENDING AT TIME " << x<<endl;
+                                cout << " COMPLETING AT TIME " << x<<endl;
                         }
 
                         currentProcess = (currentProcess + 1) % k;
@@ -347,7 +347,7 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                                 cout<<"PROCESS " << w;
                                 if(y < 10)
                                         cout << " ";
-                                cout << " BEGINNING AT TIME " << x<<endl;
+                                cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[w]->cpu<< " / " << processes[w]->cpuStart<<endl;
 
                                 processCount++;
                                 lastAdded = w;
@@ -455,7 +455,7 @@ void fifo(int k, Process *processes[], int contextSwitch)
                                 cout<<"PROCESS " << y;
                                 if(y < 10)
                                         cout << " ";
-                                cout << " BEGINNING AT TIME " << x<<endl;
+                                cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[y]->cpu<< " / " << processes[y]->cpuStart<<endl;
 
                                 for(w = 0; w < processes[y]->cpu; w++)
                                 {
@@ -554,7 +554,7 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                                 cout<<"PROCESS " << shortest;
                                 if(shortest < 10)
                                         cout << " ";
-                                cout << " BEGINNING AT TIME " << x<<endl;
+                                cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[shortest]->cpu<< " / " << processes[shortest]->cpuStart<<endl;
                         }
                 }
 
@@ -642,7 +642,7 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
                                 cout<<"PROCESS " << y;
                                 if(y < 10)
                                         cout << " ";
-                                cout << " BEGINNING AT TIME " << x<<endl;
+                                cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[y]->cpu<< " / " << processes[y]->cpuStart<<endl;
 
                         }
 
