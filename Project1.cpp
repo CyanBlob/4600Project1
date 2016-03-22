@@ -96,6 +96,7 @@ void fillCpuValues(int k, Process *processes[], int seed)
 
                 //Save the value
                 processes[x]->cpu = cpuRand;
+                processes[x]->cpuStart = cpuRand;
         }
 }
 
