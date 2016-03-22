@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void fillMemValues(int k, Process *processes[])
+void fillMemValues(int k, Process *processes[], int seed)
 {
         int x;
 
@@ -15,7 +15,7 @@ void fillMemValues(int k, Process *processes[])
         int total = k * 20;
 
         //srand (time(NULL) + k);
-        srand(1);
+        srand(seed);
 
         //Generate k memory amounts, averaging to 20
         for (x = 0; x < k; x++)
@@ -53,7 +53,7 @@ void fillMemValues(int k, Process *processes[])
         }
 }
 
-void fillCpuValues(int k, Process *processes[])
+void fillCpuValues(int k, Process *processes[], int seed)
 {
         int x;
 
@@ -61,7 +61,7 @@ void fillCpuValues(int k, Process *processes[])
         int total = k * 6000;
 
         //srand (time(NULL) + k);
-        srand(1);
+        srand(seed);
 
         //Generate k cpu cycle amounts, averaging to 6000
         for (x = 0; x < k; x++)
@@ -99,10 +99,10 @@ void fillCpuValues(int k, Process *processes[])
         }
 }
 
-void fillPIDs(int k, Process *processes[])
+void fillPIDs(int k, Process *processes[], int seed)
 {
         int x;
-        //srand (time(NULL));
+        srand(seed);
         for (x = 0; x < k; x++)
         {
                 if(x == 0)
@@ -605,7 +605,8 @@ void fifoQuad(int k, Process *processes[], int contextSwitch)
 
 }
 
-void generateProcesses(int k, Process *processes[])
+//Generate the set of processes with the same seed
+void generateProcesses(int k, Process *processes[], int seed)
 {
         int x;
 
@@ -619,9 +620,9 @@ void generateProcesses(int k, Process *processes[])
                 processes[x]->wasRunning = false;
         }
 
-        fillPIDs(k, processes);
-        fillMemValues(k, processes);
-        fillCpuValues(k, processes);
+        fillPIDs(k, processes, seed);
+        fillMemValues(k, processes, seed);
+        fillCpuValues(k, processes, seed);
 }
 
 int main()
@@ -632,24 +633,28 @@ int main()
         int quantum = 50;
         int contextSwitch = 10;
 
+        srand (time(NULL));
+
+        int seed = rand();
+
         Process *processes[k];
 
-        generateProcesses(k, processes);
+        generateProcesses(k, processes, seed);
         roundRobin(k, processes, quantum, contextSwitch);
 
-        generateProcesses(k, processes);
+        generateProcesses(k, processes, seed);
         fifo(k, processes, contextSwitch);
 
-        generateProcesses(k, processes);
+        generateProcesses(k, processes, seed);
         SJF(k, processes, contextSwitch);
 
-        generateProcesses(k, processes);
+        generateProcesses(k, processes, seed);
         fifoQuad(k, processes, contextSwitch);
 
-        generateProcesses(k, processes);
+        generateProcesses(k, processes, seed);
         SJFQuad(k, processes, contextSwitch);
 
-        generateProcesses(k, processes);
+        generateProcesses(k, processes, seed);
         roundRobinQuad(k, processes, quantum, contextSwitch);
         return 0;
 }
