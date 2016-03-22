@@ -636,7 +636,7 @@ int main()
 
         //Run all scheduling method, recreating the processes every time
 
-        generatePr//Increment x and add wait time to all waiting processesocesses(k, processes, seed);
+        generateProcesses(k, processes, seed);
         roundRobin(k, processes, quantum, contextSwitch);
 
         generateProcesses(k, processes, seed);
