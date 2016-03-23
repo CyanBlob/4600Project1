@@ -373,12 +373,6 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                 switches+= processCount;
                 x = incrementX(x, contextSwitch, k, processes);
 
-                //Reset or wasRunning flag
-                for(y = 0; y < k; y++)
-                {
-                        processes[y]->wasRunning = false;
-                }
-
                 //Keep track of where we left off
                 end = (lastAdded + 1) % k;
 
@@ -414,8 +408,6 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                                                 cout << " ";
                                         cout << " COMPLETING AT TIME " << x<<endl;
                                 }
-
-                                processes[y]->wasRunning = true;
                         }
                 }
                 cout<<endl;
@@ -705,7 +697,6 @@ void generateProcesses(int k, Process *processes[], int seed)
                 processes[x]->waitTime = 0;
                 processes[x]->arrived = false;
                 processes[x]->running = false;
-                processes[x]->wasRunning = false;
         }
 
         fillPIDs(k, processes, seed);
