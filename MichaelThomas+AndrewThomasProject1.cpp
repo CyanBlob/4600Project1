@@ -5,6 +5,13 @@
 #include <stdlib.h>
 #include "Process.h"
 
+/*
+CSCE 4600
+Project 1
+Andrew Thomas and Michael Thomas
+3/23/2016
+*/
+
 using namespace std;
 
 void fillMemValues(int k, Process *processes[], int seed)
@@ -70,12 +77,12 @@ void fillCpuValues(int k, Process *processes[], int seed)
                 int cpuRand = rand() % 10000 + 1000;
 
                 /*
-                   (total - memRand < k - x) is true when using the current memRand value
+                   (total - memRand < (k - x) * 1000) is true when using the current cpuRand value
                    would put us in a situation where a later process is going to need
-                   to take a value of 0 for memory, which needs to be avoided
-                   To solve this, decrement memRand
+                   to take a value less than 1000 for cpu, which needs to be avoided
+                   To solve this, decrement cpuRand
                  */
-                while (total - cpuRand < k - x)
+                while (total - cpuRand < (k - x) *  1000)
                 {
                         cpuRand--;
                 }
