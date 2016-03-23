@@ -77,7 +77,7 @@ void fillCpuValues(int k, Process *processes[], int seed)
                 int cpuRand = rand() % 10000 + 1000;
 
                 /*
-                   (total - memRand < (k - x) * 1000) is true when using the current cpuRand value
+                   (total - cpuRand < (k - x) * 1000) is true when using the current cpuRand value
                    would put us in a situation where a later process is going to need
                    to take a value less than 1000 for cpu, which needs to be avoided
                    To solve this, decrement cpuRand
