@@ -120,7 +120,7 @@ void fillPIDs(int k, Process *processes[], int seed)
         }
 }
 
-//Increment x and add waittime to every process that is waiting
+//Increment x (time) and add waittime to every process that is waiting
 int incrementX(int x, int amount, int k, Process *processes[])
 {
         int y;
@@ -134,7 +134,8 @@ int incrementX(int x, int amount, int k, Process *processes[])
                 }
 
         }
-
+		
+		//Increment x(time)
         x += amount;
         return x;
 }
@@ -151,6 +152,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
 
         while(true)
         {
+				//Find a process that still has CPU time remaining to be used for the comparison in the next loop
                 for(w = 0; w < k; w++)
                 {
                         if(processes[shortest]->cpu == 0)
@@ -164,7 +166,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
                                 shortest = z;
                         }
                 }
-                //Loop
+
                 while(true)
                 {
                         //Process is running and adding wait time to other processes that have arrived
@@ -176,6 +178,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
                                 cout << " ";
                         cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[shortest]->cpu<< " / " << processes[shortest]->cpuStart<<endl;
 
+						//Increment x (time) and decrement remaining CPU time until the process completes
                         for(w = 0; w < processes[shortest]->cpu; w++)
                         {
                                 x = incrementX(x, 1, k, processes);
@@ -192,6 +195,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
                 //End on last process
                 if(y == k - 1)
                 {
+						//Print results
                         for(y = 0; y < k; y++)
                         {
                                 totalWait += processes[y]->waitTime;
@@ -203,6 +207,7 @@ void SJF(int k, Process *processes[], int contextSwitch)
                         cout<<"TOTAL RUNTIME: "<<x<<" AVERAGE WAITTIME: "<< totalWait / k<<" SWITCH TIME: "<<switches * 10<<endl<<endl;
                         return;
                 }
+				//If we're not finished, add a context switch and start over
                 else
                 {
                         switches++;
@@ -346,6 +351,7 @@ void roundRobinQuad(int k, Process *processes[], int quantum, int contextSwitch)
                         //Change focus to the group of 4 after the last process we chose last time
                         w = (y + end) % k;
 
+						//Find the next valid process until we have 4 running
                         if(processCount < 4 && processes[w]->cpu > 0 && processes[w]->enterTime <= x)
                         {
                                 processes[w]->running = true;
@@ -456,6 +462,7 @@ void fifo(int k, Process *processes[], int contextSwitch)
                                         cout << " ";
                                 cout << " BEGINNING AT TIME " << x<<" TIME REMAINING: " << processes[y]->cpu<< " / " << processes[y]->cpuStart<<endl;
 
+								//Increment x (time) and decrement remaining CPU time of the process until it completes
                                 for(w = 0; w < processes[y]->cpu; w++)
                                 {
                                         x = incrementX(x, 1, k, processes);
@@ -467,7 +474,6 @@ void fifo(int k, Process *processes[], int contextSwitch)
                                 if(y < 10)
                                         cout << " ";
                                 cout << " ENDING AT TIME " << x<<endl;
-
 
                                 processes[y]->cpu = 0;
                                 break;
@@ -515,6 +521,7 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
         //Loop through all processes
         while(true)
         {
+				//Loop to determine which processes get to run
                 for (y = 0; y < k; y++)
                 {
                         if(processCount < 4 && processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
@@ -536,7 +543,7 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                                                 largest = w;
                                         }
                                 }
-                                shortest = largest;
+                                shortest = largest; //Set shortest to largest so we're guaranteed to find a lower value if one exists
 
                                 //Find the smallest remaining process
                                 for(w = 0; w < k; w++)
@@ -584,7 +591,7 @@ void SJFQuad(int k, Process *processes[], int contextSwitch)
                 x = incrementX(x, 1, k, processes);
 
 
-                //Check if we're done
+                //Check if we're done and print
                 for (y = 0; y < k; y++)
                 {
                         if(processes[y]->cpu != 0)
@@ -728,7 +735,7 @@ int main()
 
         Process *processes[k];
 
-        //Run all scheduling method, recreating the processes every time
+        //Run all scheduling methods, recreating the processes every time
 
         generateProcesses(k, processes, seed);
         roundRobin(k, processes, quantum, contextSwitch);
