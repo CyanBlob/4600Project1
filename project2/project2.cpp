@@ -20,7 +20,10 @@ void sysMalloc(Process *processes[])
           cout<<processes[x]->mem<<endl;
 
           buffer = (char*) malloc (processes[x]->mem+1);
-          if (buffer==NULL) exit (1);
+
+          if (buffer==NULL)
+            exit (1);
+
           for (n=0; n<processes[x]->mem; n++)
             buffer[n]=rand()%26+'a';
           buffer[processes[x]->mem]='\0';
