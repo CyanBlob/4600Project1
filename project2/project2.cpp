@@ -7,6 +7,29 @@
 
 using namespace std;
 
+int k = 64;
+
+void sysMalloc(Process *processes[])
+{
+  int x;
+  int n;
+  char * buffer;
+
+  for (x = 0; x < k; x++)
+  {
+          cout<<processes[x]->mem<<endl;
+
+          buffer = (char*) malloc (processes[x]->mem+1);
+          if (buffer==NULL) exit (1);
+          for (n=0; n<processes[x]->mem; n++)
+            buffer[n]=rand()%26+'a';
+          buffer[processes[x]->mem]='\0';
+
+          cout << buffer << endl << endl;
+          free (buffer);
+  }
+}
+
 void fillMemValues(int k, Process *processes[], int seed)
 {
         int x;
@@ -51,6 +74,7 @@ void fillMemValues(int k, Process *processes[], int seed)
                 processes[x]->mem = memRand;
         }
 
+        sysMalloc(processes);
         //cout<<"TOTAL: "<<total<<endl;
 }
 
@@ -155,7 +179,6 @@ void generateProcesses(int k, Process *processes[], int seed)
 
 int main()
 {
-        int k = 64;
         /*int i = 0;
         int quantum = 50;
         int contextSwitch = 10;*/
