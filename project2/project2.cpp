@@ -52,7 +52,7 @@ void fillMemValues(int k, Process *processes[], int seed)
                 processes[x]->mem = memRand;
         }
 
-        cout<<"TOTAL: "<<total<<endl;
+        //cout<<"TOTAL: "<<total<<endl;
 }
 
 void fillCpuValues(int k, Process *processes[], int seed)
@@ -177,10 +177,10 @@ int main()
 
         generateProcesses(k, processes, seed);
 
-        for (i = 0; i < k; i++)
+        /*for (i = 0; i < k; i++)
         {
                 cout<<processes[i]->mem<<endl;
-        }
+        }*/
 
         return 0;
 }
