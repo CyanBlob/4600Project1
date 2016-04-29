@@ -16,7 +16,6 @@ void fillMemValues(int k, Process *processes[], int seed)
 
         //srand (time(NULL) + k);
         srand(seed);
-
         //Generate k memory amounts, averaging to 20
         for (x = 0; x < k; x++)
         {
@@ -156,13 +155,10 @@ void generateProcesses(int k, Process *processes[], int seed)
 
 int main()
 {
-
-        int pizza = 0;
         int k = 64;
-        int i = 0;
-
+        /*int i = 0;
         int quantum = 50;
-        int contextSwitch = 10;
+        int contextSwitch = 10;*/
 
         //Pick a new seed to be used for every scheduling method
         srand (time(NULL));
