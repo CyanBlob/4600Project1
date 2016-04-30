@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+#include <malloc.h>
 #include "Process.h"
 
 using namespace std;
@@ -139,7 +140,21 @@ void fillPIDs(int k, Process *processes[], int seed)
         }
 }
 
-//Increment x and add waittime to every process that is waiting
+void countBuffers(int k, Process *processes[])
+{
+    int i;
+    int totalBufferSize = 0;
+
+    for(i = 0; i < k; i++)
+    {
+       totalBufferSize += malloc_usable_size(processes[i]->buffer); 
+    }
+
+    cout<<"Total space taken by process buffers: "<<totalBufferSize<<endl;
+}
+
+//Increment x and decrement cpu from running processes
+//Also frees processes once every processes is finished
 int incrementX(int x, int amount, int k, Process *processes[])
 {
         int y;
@@ -162,7 +177,7 @@ int incrementX(int x, int amount, int k, Process *processes[])
                 {
                         free(processes[y]->buffer);
                 }
-                cout<<"Ended with x = "<<x<<endl;
+                cout<<"Final x value: "<<x<<endl;
                 return x;
             }
             x += amount;
@@ -198,15 +213,18 @@ int main()
         srand (time(NULL));
         int seed = rand();
 
-        cout<<"SEED: "<<seed<<endl;
+        cout<<"Seed: "<<seed<<endl;
 
 
         Process *processes[k];
-        cout<<k<<endl;
+        cout<<"Number of processes: "<<k<<endl;
         //Run all scheduling method, recreating the processes every time
 
         generateProcesses(k, processes, seed);
-
+    
+        countBuffers(k, processes);
         x = incrementX(x, 1, k, processes);
+
+        //while(true);
         return 0;
 }
