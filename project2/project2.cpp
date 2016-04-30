@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <malloc.h>
+#include <ctime>
 #include "Process.h"
 
 using namespace std;
@@ -157,41 +158,48 @@ void countBuffers(int k, Process *processes[])
 //Also frees processes once every processes is finished
 int runProcesses(int x, int amount, int k, Process *processes[])
 {
-        int y;
-        bool oneRan = false;
+    int y;
+    bool oneRan = false;
+    clock_t time_a;
+    clock_t time_b; 
 
-        while(true)
+    time_a = clock();
+    while(true)
+    {
+        oneRan = false;
+        for (y = 0; y < k; y++)
         {
-          oneRan = false;
-          for (y = 0; y < k; y++)
-          {
-                 if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
-                 {
-                         //If the process has just entered, malloc
-                         if(processes[y]->enterTime == x)
-                         {
-                            processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
-                         }
-
-                         oneRan = true;
-                         processes[y]->cpu--;
-                 }
-
-            }
-            if(!oneRan)
+            if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
-
-                countBuffers(k, processes);
-                for (y = 0; y < k; y++)
+                //If the process has just entered, malloc
+                if(processes[y]->enterTime == x)
                 {
-                        free(processes[y]->buffer);
+                    processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
                 }
-                cout<<"Final x value: "<<x<<endl;
-                return x;
+
+                //If even one process ran, we need to not quit yet
+                oneRan = true;
+                processes[y]->cpu--;
             }
-            x += amount;
+
         }
-        return x;
+    
+        //If no processes ran, free all processes and quit
+        if(!oneRan)
+        {
+           countBuffers(k, processes);
+            for (y = 0; y < k; y++)
+            {
+                free(processes[y]->buffer);
+            }
+            time_b = clock();
+            cout<<"Final x value: "<<x<<endl;
+            cout<<"Total time: "<<time_b - time_a<<endl;
+            return x;
+        }
+        x += amount;
+    }
+    return x;
 }
 
 
