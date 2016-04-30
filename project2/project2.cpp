@@ -55,7 +55,7 @@ void fillMemValues(int k, Process *processes[], int seed)
                    to take a value of 0 for memory, which needs to be avoided
                    To solve this, decrement memRand
                  */
-                while (total - memRand < k - x)
+                while ((total - memRand) < (k - x))
                 {
                         memRand--;
                 }
@@ -124,7 +124,6 @@ void fillCpuValues(int k, Process *processes[], int seed)
 
                 //Save the value
                 processes[x]->cpu = cpuRand;
-                processes[x]->cpuStart = cpuRand;
         }
 }
 
@@ -154,6 +153,23 @@ void countBuffers(int k, Process *processes[])
     cout<<"Total space taken by process buffers: "<<totalBufferSize<<endl;
 }
 
+//Generate the set of processes with the same seed
+void generateProcesses(int k, Process *processes[], int seed)
+{
+        int x;
+
+        for(x = 0; x < k; x++)
+        {
+                processes[x] = new Process();
+                processes[x]->enterTime = x * 50;
+                processes[x]->startMemBlock = -1;
+        }
+
+        fillPIDs(k, processes, seed);
+        fillMemValues(k, processes, seed);
+        fillCpuValues(k, processes, seed);
+}
+
 //Increment x and decrement cpu from running processes
 //Also frees processes once every processes is finished
 int runProcesses(int x, int amount, int k, Process *processes[])
@@ -180,6 +196,12 @@ int runProcesses(int x, int amount, int k, Process *processes[])
                 //If even one process ran, we need to not quit yet
                 oneRan = true;
                 processes[y]->cpu--;
+
+                if(processes[y]->cpu == 0)
+                {
+                        //free(processes[y]->buffer);
+                }
+
             }
 
         }
@@ -187,11 +209,12 @@ int runProcesses(int x, int amount, int k, Process *processes[])
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
-           countBuffers(k, processes);
-            for (y = 0; y < k; y++)
+            countBuffers(k, processes);
+
+            /*for (y = 0; y < k; y++)
             {
                 free(processes[y]->buffer);
-            }
+            }*/
             time_b = clock();
             cout<<"Final x value: "<<x<<endl;
             cout<<"Total time: "<<time_b - time_a<<endl;
@@ -202,24 +225,137 @@ int runProcesses(int x, int amount, int k, Process *processes[])
     return x;
 }
 
-
-//Generate the set of processes with the same seed
-void generateProcesses(int k, Process *processes[], int seed)
+void my_malloc(bool *memArray, int processNum, Process *processes[])
 {
-        int x;
+    int i;
+    int j;
+    int contiguousSpace = 0;
 
-        for(x = 0; x < k; x++)
+    for(i = 0; i < 20000; i++)
+    {
+        if(memArray[i] == false)
         {
-                processes[x] = new Process();
-                processes[x]->enterTime = x * 50;
-                processes[x]->waitTime = 0;
-                processes[x]->arrived = false;
-                processes[x]->running = false;
+            contiguousSpace++;
+            if(contiguousSpace == processes[processNum]->mem)
+            {
+                i -= processes[processNum]->mem;
+                processes[processNum]->startMemBlock = ++i;
+                
+                j = i;
+               
+                //I set i = j to shut my compiler up 
+                for(i = j; i < j + processes[processNum]->mem; i++)
+                {
+                    memArray[i] = true;
+                }
+                return;
+
+            }
+
+        }
+        else
+        {
+            contiguousSpace = 0;
         }
 
-        fillPIDs(k, processes, seed);
-        fillMemValues(k, processes, seed);
-        fillCpuValues(k, processes, seed);
+    }
+
+}
+
+void my_free(bool *memArray, int processNum, Process *processes[])
+{
+    int i;
+    int freedCount = 0;
+
+    for(i = processes[processNum]->startMemBlock; i < processes[processNum]->startMemBlock + processes[processNum]->mem; i++)
+    {
+        if(memArray[i] == true)
+        {
+            freedCount++;
+        }
+        //cout<<i<<", ";
+        memArray[i] = false;
+    }
+
+    //cout<<endl<<"Start: "<<processes[processNum]->startMemBlock<<" End: "<<processes[processNum]->startMemBlock + processes[processNum]->mem - 1<<" Memory: "<<processes[processNum]->mem<<" Freed: "<<freedCount<<endl<<endl;
+}
+
+int runProcesses2(int x, int amount, int k, Process *processes[])
+{
+    int y;
+    bool oneRan = false;
+    clock_t time_a;
+    clock_t time_b; 
+
+    //We are using 20000KB instead of 20000000B
+    bool *memArray = (bool*)(malloc(20000 * sizeof(bool)));
+    for(y = 0; y < 20000; y++)
+    {
+        memArray[y] = false;
+    }
+
+    cout<<"memArray size: "<<malloc_usable_size(memArray)<<"KB"<<endl;
+
+    time_a = clock();
+    while(true)
+    {
+        oneRan = false;
+        for (y = 0; y < k; y++)
+        {
+            if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
+            {
+                //If the process has just entered, malloc
+                if(processes[y]->enterTime == x)
+                {
+                    //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
+                    my_malloc(memArray, y, processes);
+                }
+
+                //If even one process ran, we need to not quit yet
+                oneRan = true;
+                processes[y]->cpu--;
+
+                if(processes[y]->cpu == 0)
+                {
+                        my_free(memArray, y, processes);
+                }
+
+            }
+
+        }
+    
+        //If no processes ran, free all processes and quit
+        if(!oneRan)
+        {
+            
+            int i;
+            int buffCounter = 0;
+            
+            for(i = 0; i < 20000; i++)
+            {
+                if(memArray[i] == true)
+                {
+                    //cout<<i<<", ";
+                    buffCounter++;
+                }
+            }
+
+            cout<<"buffCounter: "<<buffCounter<<endl;
+            
+            //countBuffers(k, processes);
+
+            /*for (y = 0; y < k; y++)
+            {
+                free(processes[y]->buffer);
+            }*/
+            time_b = clock();
+            cout<<"Final x value: "<<x<<endl;
+            cout<<"Total time: "<<time_b - time_a<<endl;
+            return x;
+        }
+        x += amount;
+    }
+    return x;
 }
 
 int main()
@@ -242,6 +378,9 @@ int main()
         //countBuffers(k, processes);
         x = runProcesses(x, 1, k, processes);
 
+        x = 0;
+        generateProcesses(k, processes, seed);
+        x = runProcesses2(x, 1, k, processes);
         //while(true);
         return 0;
 }

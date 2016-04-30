@@ -4,13 +4,8 @@ class Process
         int pid;
         int mem;
         int cpu;
-        int cpuStart;
         int enterTime;
-        int waitTime;
+        int startMemBlock;
 
         char * buffer;
-
-        bool isWaiting;
-        bool running;
-        bool arrived;
 };
