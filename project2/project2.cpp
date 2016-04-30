@@ -77,7 +77,7 @@ void fillMemValues(int k, Process *processes[], int seed)
                 processes[x]->mem = memRand;
         }
 
-        sysMalloc(processes);
+        //sysMalloc(processes);
         //cout<<"TOTAL: "<<total<<endl;
 }
 
@@ -155,10 +155,11 @@ void countBuffers(int k, Process *processes[])
 
 //Increment x and decrement cpu from running processes
 //Also frees processes once every processes is finished
-int incrementX(int x, int amount, int k, Process *processes[])
+int runProcesses(int x, int amount, int k, Process *processes[])
 {
         int y;
         bool oneRan = false;
+
         while(true)
         {
           oneRan = false;
@@ -166,6 +167,12 @@ int incrementX(int x, int amount, int k, Process *processes[])
           {
                  if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
                  {
+                         //If the process has just entered, malloc
+                         if(processes[y]->enterTime == x)
+                         {
+                            processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
+                         }
+
                          oneRan = true;
                          processes[y]->cpu--;
                  }
@@ -173,6 +180,8 @@ int incrementX(int x, int amount, int k, Process *processes[])
             }
             if(!oneRan)
             {
+
+                countBuffers(k, processes);
                 for (y = 0; y < k; y++)
                 {
                         free(processes[y]->buffer);
@@ -222,8 +231,8 @@ int main()
 
         generateProcesses(k, processes, seed);
     
-        countBuffers(k, processes);
-        x = incrementX(x, 1, k, processes);
+        //countBuffers(k, processes);
+        x = runProcesses(x, 1, k, processes);
 
         //while(true);
         return 0;
