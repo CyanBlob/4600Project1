@@ -13,23 +13,22 @@ void sysMalloc(Process *processes[])
 {
   int x;
   int n;
-  char * buffer;
+  //char * buffer;
 
   for (x = 0; x < k; x++)
   {
-          cout<<processes[x]->mem<<endl;
+          //cout<<processes[x]->mem<<endl;
 
-          buffer = (char*) malloc (processes[x]->mem+1);
+          processes[x]->buffer = (char*) malloc (processes[x]->mem+1);
 
-          if (buffer==NULL)
+          if (processes[x]->buffer==NULL)
             exit (1);
 
           for (n=0; n<processes[x]->mem; n++)
-            buffer[n]=rand()%26+'a';
-          buffer[processes[x]->mem]='\0';
+            processes[x]->buffer[n]=rand()%26+'a';
+          processes[x]->buffer[processes[x]->mem]='\0';
 
-          cout << buffer << endl << endl;
-          free (buffer);
+          //free (processes[x]->buffer);
   }
 }
 
@@ -87,7 +86,6 @@ void fillCpuValues(int k, Process *processes[], int seed)
 
         //The total amount my sum of k processes needs to equal when finished
         int total = k * 6000;
-
         //srand (time(NULL) + k);
         srand(seed);
 
@@ -145,18 +143,30 @@ void fillPIDs(int k, Process *processes[], int seed)
 int incrementX(int x, int amount, int k, Process *processes[])
 {
         int y;
-
-        for (y = 0; y < k; y++)
+        bool oneRan = false;
+        while(true)
         {
+          oneRan = false;
+          for (y = 0; y < k; y++)
+          {
+                 if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
+                 {
+                         oneRan = true;
+                         processes[y]->cpu--;
+                 }
 
-                if(processes[y]->cpu > 0 && processes[y]->enterTime <= x && processes[y]->running == false)
+            }
+            if(!oneRan)
+            {
+                for (y = 0; y < k; y++)
                 {
-                        processes[y]->waitTime += amount;
+                        free(processes[y]->buffer);
                 }
-
+                cout<<"Ended with x = "<<x<<endl;
+                return x;
+            }
+            x += amount;
         }
-
-        x += amount;
         return x;
 }
 
@@ -182,9 +192,7 @@ void generateProcesses(int k, Process *processes[], int seed)
 
 int main()
 {
-        /*int i = 0;
-        int quantum = 50;
-        int contextSwitch = 10;*/
+        int x = 0;
 
         //Pick a new seed to be used for every scheduling method
         srand (time(NULL));
@@ -194,15 +202,11 @@ int main()
 
 
         Process *processes[k];
-
+        cout<<k<<endl;
         //Run all scheduling method, recreating the processes every time
 
         generateProcesses(k, processes, seed);
 
-        /*for (i = 0; i < k; i++)
-        {
-                cout<<processes[i]->mem<<endl;
-        }*/
-
+        x = incrementX(x, 1, k, processes);
         return 0;
 }

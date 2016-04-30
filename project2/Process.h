@@ -8,6 +8,8 @@ class Process
         int enterTime;
         int waitTime;
 
+        char * buffer;
+
         bool isWaiting;
         bool running;
         bool arrived;
