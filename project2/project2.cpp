@@ -10,6 +10,7 @@
 using namespace std;
 
 int k = 64;
+#define memSize 200
 
 void sysMalloc(Process *processes[])
 {
@@ -231,7 +232,7 @@ void my_malloc(bool *memArray, int processNum, Process *processes[])
     int j;
     int contiguousSpace = 0;
 
-    for(i = 0; i < 20000; i++)
+    for(i = 0; i < memSize; i++)
     {
         if(memArray[i] == false)
         {
@@ -287,9 +288,8 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
     clock_t time_a;
     clock_t time_b; 
 
-    //We are using 20000KB instead of 20000000B
-    bool *memArray = (bool*)(malloc(20000 * sizeof(bool)));
-    for(y = 0; y < 20000; y++)
+    bool *memArray = (bool*)(malloc(memSize * sizeof(bool)));
+    for(y = 0; y < memSize; y++)
     {
         memArray[y] = false;
     }
@@ -304,9 +304,10 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
         {
             if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
-                //If the process has just entered, malloc
-                if(processes[y]->enterTime == x)
+                //If the process has just entered or didn't have space allocated, malloc
+                if(processes[y]->enterTime == x || processes[y]->startMemBlock == -1)
                 {
+                    cout<<"Calling my_malloc on process "<<y<<endl;
                     //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
                     my_malloc(memArray, y, processes);
                 }
@@ -317,6 +318,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
 
                 if(processes[y]->cpu == 0)
                 {
+                        cout<<"Calling my_free on process "<<y<<endl;
                         my_free(memArray, y, processes);
                 }
 
@@ -331,7 +333,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
             int i;
             int buffCounter = 0;
             
-            for(i = 0; i < 20000; i++)
+            for(i = 0; i < memSize; i++)
             {
                 if(memArray[i] == true)
                 {
