@@ -10,7 +10,7 @@
 using namespace std;
 
 int k = 64;
-#define memSize 20000
+int memSize = 20000;
 
 void fillMemValues(int k, Process *processes[], int seed)
 {
@@ -122,7 +122,7 @@ void countBuffers(int k, Process *processes[])
 
     for(i = 0; i < k; i++)
     {
-       totalBufferSize += malloc_usable_size(processes[i]->buffer); 
+       totalBufferSize += malloc_usable_size(processes[i]->buffer);
     }
 
     cout<<"Total space taken by process buffers: "<<totalBufferSize<<endl;
@@ -152,7 +152,7 @@ int runProcesses(int x, int amount, int k, Process *processes[])
     int y;
     bool oneRan = false;
     clock_t time_a;
-    clock_t time_b; 
+    clock_t time_b;
 
     time_a = clock();
     while(true)
@@ -180,7 +180,7 @@ int runProcesses(int x, int amount, int k, Process *processes[])
             }
 
         }
-    
+
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
@@ -211,10 +211,10 @@ void my_malloc(bool *memArray, int processNum, Process *processes[])
             {
                 i -= processes[processNum]->mem;
                 processes[processNum]->startMemBlock = ++i;
-                
+
                 j = i;
-               
-                //I set i = j to shut my compiler up 
+
+                //I set i = j to shut my compiler up
                 for(i = j; i < j + processes[processNum]->mem; i++)
                 {
                     memArray[i] = true;
@@ -256,7 +256,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
     int y;
     bool oneRan = false;
     clock_t time_a;
-    clock_t time_b; 
+    clock_t time_b;
 
     //Note: We are intentionally not timing the initial malloc call, as it seems
     //that we're only supposed to be timing my_malloc and my_free
@@ -277,7 +277,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
             if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
                 //If the process hasn't had memory allocated, try to allocate memory
-                //We don't need to check if the process has entered, since that's already been checked 
+                //We don't need to check if the process has entered, since that's already been checked
                 if(processes[y]->startMemBlock == -1)
                 {
                     //cout<<"Calling my_malloc on process "<<y<<endl;
@@ -301,14 +301,14 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
             }
 
         }
-    
+
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
-            
+
             int i;
             int buffCounter = 0;
-            
+
             for(i = 0; i < memSize; i++)
             {
                 if(memArray[i] == true)
@@ -319,7 +319,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
             }
 
             cout<<"buffCounter: "<<buffCounter<<endl;
-            
+
             //countBuffers(k, processes);
 
             /*for (y = 0; y < k; y++)
@@ -339,7 +339,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
 int main()
 {
         int x = 0;
-
+        int choice = 0;
         //Pick a new seed to be used for every scheduling method
         srand (time(NULL));
         int seed = rand();
@@ -352,13 +352,36 @@ int main()
         //Run all scheduling method, recreating the processes every time
 
         generateProcesses(k, processes, seed);
-    
-        //countBuffers(k, processes);
-        x = runProcesses(x, 1, k, processes);
 
-        x = 0;
-        generateProcesses(k, processes, seed);
-        x = runProcesses2(x, 1, k, processes);
+        while(1)
+        {
+          cout<<"Type '1' for 100% memory, '2' for 50%, or '3' for 10%. Type '-1' to quit."<<endl;
+          cin>>choice;
+          if(choice == 1)
+          {
+            memSize = 20000;
+          }
+          else if (choice == 2)
+          {
+            memSize = 10000;
+          }
+          else if (choice == 3)
+          {
+            memSize = 2000;
+          }
+          else if (choice == -1)
+          {
+            return 0;
+          }
+          else
+            cout<<"Invalid selection"<<endl;
+          //countBuffers(k, processes);
+          x = runProcesses(x, 1, k, processes);
+
+          x = 0;
+          generateProcesses(k, processes, seed);
+          x = runProcesses2(x, 1, k, processes);
+        }
         //while(true);
         return 0;
 }
