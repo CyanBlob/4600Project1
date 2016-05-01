@@ -10,30 +10,7 @@
 using namespace std;
 
 int k = 64;
-#define memSize 200
-
-void sysMalloc(Process *processes[])
-{
-  int x;
-  int n;
-  //char * buffer;
-
-  for (x = 0; x < k; x++)
-  {
-          //cout<<processes[x]->mem<<endl;
-
-          processes[x]->buffer = (char*) malloc (processes[x]->mem+1);
-
-          if (processes[x]->buffer==NULL)
-            exit (1);
-
-          for (n=0; n<processes[x]->mem; n++)
-            processes[x]->buffer[n]=rand()%26+'a';
-          processes[x]->buffer[processes[x]->mem]='\0';
-
-          //free (processes[x]->buffer);
-  }
-}
+#define memSize 20000
 
 void fillMemValues(int k, Process *processes[], int seed)
 {
@@ -288,6 +265,8 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
     clock_t time_a;
     clock_t time_b; 
 
+    //Note: We are intentionally not timing the initial malloc call, as it seems
+    //that we're only supposed to be timing my_malloc and my_free
     bool *memArray = (bool*)(malloc(memSize * sizeof(bool)));
     for(y = 0; y < memSize; y++)
     {
@@ -304,21 +283,25 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
         {
             if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
-                //If the process has just entered or didn't have space allocated, malloc
-                if(processes[y]->enterTime == x || processes[y]->startMemBlock == -1)
+                //If the process hasn't had memory allocated, try to allocate memory
+                //We don't need to check if the process has entered, since that's already been checked 
+                if(processes[y]->startMemBlock == -1)
                 {
-                    cout<<"Calling my_malloc on process "<<y<<endl;
+                    //cout<<"Calling my_malloc on process "<<y<<endl;
                     //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
                     my_malloc(memArray, y, processes);
                 }
 
                 //If even one process ran, we need to not quit yet
-                oneRan = true;
-                processes[y]->cpu--;
+                if(processes[y]->startMemBlock != -1)
+                {
+                    oneRan = true;
+                    processes[y]->cpu--;
+                }
 
                 if(processes[y]->cpu == 0)
                 {
-                        cout<<"Calling my_free on process "<<y<<endl;
+                        //cout<<"Calling my_free on process "<<y<<endl;
                         my_free(memArray, y, processes);
                 }
 
