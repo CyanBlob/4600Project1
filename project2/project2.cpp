@@ -55,9 +55,6 @@ void fillMemValues(int k, Process *processes[], int seed)
                 //Save the value
                 processes[x]->mem = memRand;
         }
-
-        //sysMalloc(processes);
-        //cout<<"TOTAL: "<<total<<endl;
 }
 
 void fillCpuValues(int k, Process *processes[], int seed)
@@ -177,7 +174,7 @@ int runProcesses(int x, int amount, int k, Process *processes[])
 
                 if(processes[y]->cpu == 0)
                 {
-                        //free(processes[y]->buffer);
+                        free(processes[y]->buffer);
                 }
 
             }
@@ -187,12 +184,8 @@ int runProcesses(int x, int amount, int k, Process *processes[])
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
-            countBuffers(k, processes);
+            //countBuffers(k, processes);
 
-            /*for (y = 0; y < k; y++)
-            {
-                free(processes[y]->buffer);
-            }*/
             time_b = clock();
             cout<<"Final x value: "<<x<<endl;
             cout<<"Total time: "<<time_b - time_a<<endl;
