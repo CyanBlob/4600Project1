@@ -280,6 +280,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
 {
     int y;
     bool oneRan = false;
+    int memUsed = 0;
     clock_t time_a;
     clock_t time_b;
 
@@ -303,11 +304,12 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
             {
                 //If the process hasn't had memory allocated, try to allocate memory
                 //We don't need to check if the process has entered, since that's already been checked
-                if(processes[y]->startMemBlock == -1)
+                if(processes[y]->startMemBlock == -1 && memUsed + processes[y]->mem <= memSize)
                 {
                     //cout<<"Calling my_malloc on process "<<y<<endl;
                     //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
                     my_malloc(memArray, y, processes);
+                    memUsed += processes[y]->mem;
                 }
 
                 //If even one process ran, we need to not quit yet
@@ -321,6 +323,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
                 {
                         //cout<<"Calling my_free on process "<<y<<endl;
                         my_free(memArray, y, processes);
+                        memUsed -= processes[y]->mem;
                 }
 
             }
