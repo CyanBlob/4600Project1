@@ -284,14 +284,6 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
     clock_t time_a;
     clock_t time_b;
 
-    clock_t mallocStart;
-          clock_t mallocEnd;
-                clock_t freeStart;
-                      clock_t freeEnd;
-                            float mallocTotal = 0;
-                                  float freeTotal = 0;
-
-
     //Note: We are intentionally not timing the initial malloc call, as it seems
     //that we're only supposed to be timing my_malloc and my_free
     bool *memArray = (bool*)(malloc(memSize * sizeof(bool)));
