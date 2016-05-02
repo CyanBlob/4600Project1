@@ -164,16 +164,16 @@ int runProcesses(int x, int amount, int k, Process *processes[])
             if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
                 //If the process has just entered, malloc
-                if(processes[y]->enterTime == x)
+                if(processes[y]->startMemBlock == -1)
                 {
-                  if((memUsed + processes[y]->mem + 24) < memSize)
+                  if((memUsed + processes[y]->mem) < memSize)
                   {
                     processes[y]->buffer = (bool*) malloc (processes[y]->mem);
-                    memUsed += malloc_usable_size(processes[y]->buffer);
-                    //memUsed += processes[y]->mem;
-                    cout<<"TAKING " << malloc_usable_size(processes[y]->buffer)<<endl;
+                    //memUsed += malloc_usable_size(processes[y]->buffer);
+                    memUsed += processes[y]->mem;
+                    //cout<<"TAKING " << malloc_usable_size(processes[y]->buffer)<<endl;
                     processes[y]->startMemBlock = x;
-                    cout<<memUsed<<endl;
+                    //cout<<memUsed<<endl;
                   }
                 }
 
@@ -186,11 +186,11 @@ int runProcesses(int x, int amount, int k, Process *processes[])
 
                 if(processes[y]->cpu == 0)
                 {
-                  cout<<"FREEING " << malloc_usable_size(processes[y]->buffer)<<endl;
+                  //cout<<"FREEING " << malloc_usable_size(processes[y]->buffer)<<endl;
                   free(processes[y]->buffer);
-                  memUsed -= malloc_usable_size(processes[y]->buffer);
-                  //memUsed -= processes[y]->mem;
-                  cout<<memUsed<<endl;
+                  //memUsed -= malloc_usable_size(processes[y]->buffer);
+                  memUsed -= processes[y]->mem;
+                  //cout<<memUsed<<endl;
                 }
 
             }
@@ -207,7 +207,7 @@ int runProcesses(int x, int amount, int k, Process *processes[])
           {
             if(processes[z]->cpu != 0)
             {
-              cout<< z << " IS " << processes[z]->cpu<<" START IS "<<processes[z]->startMemBlock<<endl;
+              //cout<< z << " IS " << processes[z]->cpu<<" STARTMEMBLOCK IS "<<processes[z]->startMemBlock<<endl;
               done = 0;
             }
           }
@@ -266,15 +266,10 @@ void my_malloc(bool *memArray, int processNum, Process *processes[])
 void my_free(bool *memArray, int processNum, Process *processes[])
 {
     int i;
-    int freedCount = 0;
+    //int freedCount = 0;
 
     for(i = processes[processNum]->startMemBlock; i < processes[processNum]->startMemBlock + processes[processNum]->mem; i++)
     {
-        if(memArray[i] == true)
-        {
-            freedCount++;
-        }
-        //cout<<i<<", ";
         memArray[i] = false;
     }
 
@@ -341,7 +336,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
           {
             if(processes[z]->cpu != 0)
             {
-              cout<<"DONE CHECKING"<<endl;
+              //cout<<"DONE CHECKING"<<endl;
               done = 0;
             }
           }
@@ -353,7 +348,6 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
               cout<<"Total time: "<<time_b - time_a<<endl;
               return x;
             }
-
         }
         x += amount;
     }
@@ -387,11 +381,11 @@ int main()
           }
           else if (choice == 2)
           {
-            memSize = 10000;
+            memSize = 640;
           }
           else if (choice == 3)
           {
-            memSize = 2000;
+            memSize = 128;
           }
           else if (choice == -1)
           {
