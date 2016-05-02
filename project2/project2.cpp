@@ -284,6 +284,14 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
     clock_t time_a;
     clock_t time_b;
 
+    clock_t mallocStart;
+          clock_t mallocEnd;
+                clock_t freeStart;
+                      clock_t freeEnd;
+                            float mallocTotal = 0;
+                                  float freeTotal = 0;
+
+
     //Note: We are intentionally not timing the initial malloc call, as it seems
     //that we're only supposed to be timing my_malloc and my_free
     bool *memArray = (bool*)(malloc(memSize * sizeof(bool)));
@@ -308,8 +316,14 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
                 {
                     //cout<<"Calling my_malloc on process "<<y<<endl;
                     //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
+                    
                     my_malloc(memArray, y, processes);
-                    memUsed += processes[y]->mem;
+
+                    if(processes[y]->startMemBlock != -1)
+                    {                    
+                        memUsed += processes[y]->mem;
+                    }
+                    //cout<<processes[y]->mem<<" after add "<<memUsed<<endl;
                 }
 
                 //If even one process ran, we need to not quit yet
@@ -321,9 +335,8 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
 
                 if(processes[y]->cpu == 0)
                 {
-                        //cout<<"Calling my_free on process "<<y<<endl;
-                        my_free(memArray, y, processes);
-                        memUsed -= processes[y]->mem;
+                    my_free(memArray, y, processes);
+                    memUsed -= processes[y]->mem;
                 }
 
             }
@@ -349,6 +362,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
               time_b = clock();
               cout<<"Final x value: "<<x<<endl;
               cout<<"Total time: "<<time_b - time_a<<endl;
+
               return x;
             }
         }

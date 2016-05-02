@@ -1,0 +1,59 @@
+clock_t mallocStart;
+      clock_t mallocEnd;
+      clock_t freeStart;
+      clock_t freeEnd;
+      float mallocTotal = 0;
+      float freeTotal = 0;
+  
+>>    int memUsed = 0;
+  
+      //Note: We are intentionally not timing the initial malloc call, as it seems
+      //that we're only supposed to be timing my_malloc and my_free
+      bool *memArray = (bool*)(malloc(memSize * sizeof(bool)));
+      for(y = 0; y < memSize; y++)
+      {   
+          memArray[y] = false;
+      }   
+  
+      cout<<"memArray size: "<<malloc_usable_size(memArray)<<"KB"<<endl;
+  
+      time_a = clock();
+      while(true)
+      {   
+          oneRan = false;
+          for (y = 0; y < k; y++)
+          {
+              if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
+              {
+                  //If the process hasn't had memory allocated, try to allocate memory
+                  //We don't need to check if the process has entered, since that's already been checked
+                  if(processes[y]->startMemBlock == -1) 
+                  {
+                      //cout<<"Calling my_malloc on process "<<y<<endl;
+                      //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
+                      mallocStart = clock();
+                      my_malloc(memArray, y, processes);
+                      mallocEnd = clock();
+                      mallocTotal += mallocEnd - mallocStart;
+                  }   
+  
+                  //If even one process ran, we need to not quit yet
+                  if(processes[y]->startMemBlock != -1) 
+                  {
+                      oneRan = true;
+                      processes[y]->cpu--;
+                  }   
+  
+                  if(processes[y]->cpu == 0)
+                  {
+                          //cout<<"Calling my_free on process "<<y<<endl;
+                          freeStart = clock();
+                          my_free(memArray, y, processes);
+                          freeEnd = clock();
+                          freeTotal += freeEnd - freeStart;
+                  }
+  
+              }
+  
+          }   
+
