@@ -7,5 +7,5 @@ class Process
         int enterTime;
         int startMemBlock;
 
-        char * buffer;
+        bool * buffer;
 };

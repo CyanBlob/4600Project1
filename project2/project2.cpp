@@ -149,7 +149,8 @@ void generateProcesses(int k, Process *processes[], int seed)
 //Also frees processes once every processes is finished
 int runProcesses(int x, int amount, int k, Process *processes[])
 {
-    int y;
+    int y, z;
+    int memUsed = 0;
     bool oneRan = false;
     clock_t time_a;
     clock_t time_b;
@@ -165,16 +166,31 @@ int runProcesses(int x, int amount, int k, Process *processes[])
                 //If the process has just entered, malloc
                 if(processes[y]->enterTime == x)
                 {
-                    processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
+                  if((memUsed + processes[y]->mem + 24) < memSize)
+                  {
+                    processes[y]->buffer = (bool*) malloc (processes[y]->mem);
+                    memUsed += malloc_usable_size(processes[y]->buffer);
+                    //memUsed += processes[y]->mem;
+                    cout<<"TAKING " << malloc_usable_size(processes[y]->buffer)<<endl;
+                    processes[y]->startMemBlock = x;
+                    cout<<memUsed<<endl;
+                  }
                 }
 
                 //If even one process ran, we need to not quit yet
-                oneRan = true;
-                processes[y]->cpu--;
+                if(processes[y]->cpu > 0 && processes[y]->startMemBlock != -1)
+                {
+                  oneRan = true;
+                  processes[y]->cpu--;
+                }
 
                 if(processes[y]->cpu == 0)
                 {
-                        free(processes[y]->buffer);
+                  cout<<"FREEING " << malloc_usable_size(processes[y]->buffer)<<endl;
+                  free(processes[y]->buffer);
+                  memUsed -= malloc_usable_size(processes[y]->buffer);
+                  //memUsed -= processes[y]->mem;
+                  cout<<memUsed<<endl;
                 }
 
             }
@@ -184,12 +200,26 @@ int runProcesses(int x, int amount, int k, Process *processes[])
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
-            //countBuffers(k, processes);
+          //cout<<"!oneran" << endl;
+          int done = 1;
 
-            time_b = clock();
-            cout<<"Final x value: "<<x<<endl;
-            cout<<"Total time: "<<time_b - time_a<<endl;
-            return x;
+          for(z = 0; z < k; z++)
+          {
+            if(processes[z]->cpu != 0)
+            {
+              cout<< z << " IS " << processes[z]->cpu<<" START IS "<<processes[z]->startMemBlock<<endl;
+              done = 0;
+            }
+          }
+            //countBuffers(k, processes);
+            if(done == 1)
+            {
+              time_b = clock();
+              cout<<"Final x value: "<<x<<endl;
+              cout<<"Total time: "<<time_b - time_a<<endl;
+              return x;
+            }
+
         }
         x += amount;
     }
@@ -305,31 +335,25 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
-
-            int i;
-            int buffCounter = 0;
-
-            for(i = 0; i < memSize; i++)
+          int done = 1;
+          int z;
+          for(z = 0; z < k; z++)
+          {
+            if(processes[z]->cpu != 0)
             {
-                if(memArray[i] == true)
-                {
-                    //cout<<i<<", ";
-                    buffCounter++;
-                }
+              cout<<"DONE CHECKING"<<endl;
+              done = 0;
+            }
+          }
+            //countBuffers(k, processes);
+            if(done == 1)
+            {
+              time_b = clock();
+              cout<<"Final x value: "<<x<<endl;
+              cout<<"Total time: "<<time_b - time_a<<endl;
+              return x;
             }
 
-            cout<<"buffCounter: "<<buffCounter<<endl;
-
-            //countBuffers(k, processes);
-
-            /*for (y = 0; y < k; y++)
-            {
-                free(processes[y]->buffer);
-            }*/
-            time_b = clock();
-            cout<<"Final x value: "<<x<<endl;
-            cout<<"Total time: "<<time_b - time_a<<endl;
-            return x;
         }
         x += amount;
     }
@@ -351,7 +375,7 @@ int main()
         cout<<"Number of processes: "<<k<<endl;
         //Run all scheduling method, recreating the processes every time
 
-        generateProcesses(k, processes, seed);
+
 
         while(1)
         {
@@ -374,8 +398,12 @@ int main()
             return 0;
           }
           else
+          {
             cout<<"Invalid selection"<<endl;
+            return 0;
+          }
           //countBuffers(k, processes);
+          generateProcesses(k, processes, seed);
           x = runProcesses(x, 1, k, processes);
 
           x = 0;
