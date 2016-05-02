@@ -316,11 +316,11 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
                 {
                     //cout<<"Calling my_malloc on process "<<y<<endl;
                     //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
-                    
+
                     my_malloc(memArray, y, processes);
 
                     if(processes[y]->startMemBlock != -1)
-                    {                    
+                    {
                         memUsed += processes[y]->mem;
                     }
                     //cout<<processes[y]->mem<<" after add "<<memUsed<<endl;
@@ -390,7 +390,7 @@ int main()
 
         while(1)
         {
-          cout<<"Type '1' for 100% memory, '2' for 50%, or '3' for 10%. Type '-1' to quit."<<endl;
+          cout<<"Type '1' for 20MB memory, '2' for 50% required, or '3' for 10% required. Type '-1' to quit."<<endl;
           cin>>choice;
           if(choice == 1)
           {
