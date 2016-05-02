@@ -396,6 +396,7 @@ int main()
           {
             memSize = 20000;
           }
+          //Total required memory is always 1280KB because the 20KB average is guaranteed
           else if (choice == 2)
           {
             memSize = 640;
