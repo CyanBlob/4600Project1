@@ -200,7 +200,7 @@ int runProcesses(int x, int amount, int k, Process *processes[])
           {
             time_b = clock();
             cout<<"Final x value for system malloc: "<<x<<endl;
-            cout<<"Total time for system malloc: "<<time_b - time_a<<endl;
+            cout<<"Total time for custom malloc: "<<time_b - time_a<< " cycles, or " << (time_b - time_a) / (double) CLOCKS_PER_SEC<< " seconds"<<endl;
             return x;
           }
 
@@ -334,7 +334,7 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
           {
             time_b = clock();
             cout<<"Final x value for custom malloc: "<<x<<endl;
-            cout<<"Total time for custom malloc: "<<time_b - time_a<<endl;
+            cout<<"Total time for custom malloc: "<<time_b - time_a<< " cycles, or " << (time_b - time_a) / (double) CLOCKS_PER_SEC<< " seconds"<<endl;
 
             return x;
           }
