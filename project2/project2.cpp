@@ -115,18 +115,6 @@ void fillPIDs(int k, Process *processes[], int seed)
         }
 }
 
-void countBuffers(int k, Process *processes[])
-{
-    int i;
-    int totalBufferSize = 0;
-
-    for(i = 0; i < k; i++)
-    {
-       totalBufferSize += malloc_usable_size(processes[i]->buffer);
-    }
-
-    cout<<"Total space taken by process buffers: "<<totalBufferSize<<endl;
-}
 
 //Generate the set of processes with the same seed
 void generateProcesses(int k, Process *processes[], int seed)
@@ -145,8 +133,7 @@ void generateProcesses(int k, Process *processes[], int seed)
         fillCpuValues(k, processes, seed);
 }
 
-//Increment x and decrement cpu from running processes
-//Also frees processes once every processes is finished
+//Run processes using system malloc
 int runProcesses(int x, int amount, int k, Process *processes[])
 {
     int y, z;
@@ -158,22 +145,23 @@ int runProcesses(int x, int amount, int k, Process *processes[])
     time_a = clock();
     while(true)
     {
+        //Reset the run counter
         oneRan = false;
+
         for (y = 0; y < k; y++)
         {
+            //Check if the process has entered and is not complete
             if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
-                //If the process has just entered, malloc
+                //If the process has just entered, malloc. startMemBlock starts at -1 and is actually assigned when the process starts
                 if(processes[y]->startMemBlock == -1)
                 {
                   if((memUsed + processes[y]->mem) < memSize)
                   {
+                    //Malloc the required memory, add to the memory total, and assign startMemBlock
                     processes[y]->buffer = (bool*) malloc (processes[y]->mem);
-                    //memUsed += malloc_usable_size(processes[y]->buffer);
                     memUsed += processes[y]->mem;
-                    //cout<<"TAKING " << malloc_usable_size(processes[y]->buffer)<<endl;
                     processes[y]->startMemBlock = x;
-                    //cout<<memUsed<<endl;
                   }
                 }
 
@@ -184,44 +172,40 @@ int runProcesses(int x, int amount, int k, Process *processes[])
                   processes[y]->cpu--;
                 }
 
+                //When process CPU reaches 0, free the memory it used and subtract from the memory total
                 if(processes[y]->cpu == 0)
                 {
-                  //cout<<"FREEING " << malloc_usable_size(processes[y]->buffer)<<endl;
                   free(processes[y]->buffer);
-                  //memUsed -= malloc_usable_size(processes[y]->buffer);
                   memUsed -= processes[y]->mem;
-                  //cout<<memUsed<<endl;
                 }
-
             }
-
         }
 
         //If no processes ran, free all processes and quit
         if(!oneRan)
         {
-          //cout<<"!oneran" << endl;
           int done = 1;
 
+          //Loop through all processes to make sure they're all at 0 CPU
           for(z = 0; z < k; z++)
           {
             if(processes[z]->cpu != 0)
             {
-              //cout<< z << " IS " << processes[z]->cpu<<" STARTMEMBLOCK IS "<<processes[z]->startMemBlock<<endl;
               done = 0;
             }
           }
-            //countBuffers(k, processes);
-            if(done == 1)
-            {
-              time_b = clock();
-              cout<<"Final x value: "<<x<<endl;
-              cout<<"Total time: "<<time_b - time_a<<endl;
-              return x;
-            }
+
+          //If all the processes are complete, end the timer and finish
+          if(done == 1)
+          {
+            time_b = clock();
+            cout<<"Final x value for system malloc: "<<x<<endl;
+            cout<<"Total time for system malloc: "<<time_b - time_a<<endl;
+            return x;
+          }
 
         }
-        x += amount;
+        x += amount; //Increment x (psuedo clock cycles) by 1
     }
     return x;
 }
@@ -232,48 +216,48 @@ void my_malloc(bool *memArray, int processNum, Process *processes[])
     int j;
     int contiguousSpace = 0;
 
+    //Loop based on process memory requirement
     for(i = 0; i < memSize; i++)
     {
+        //If the memory location is free
         if(memArray[i] == false)
         {
             contiguousSpace++;
+            //Check if the amount of contiguous space found matches our required memory
             if(contiguousSpace == processes[processNum]->mem)
             {
+                //Move back to the start of the contiguous block
                 i -= processes[processNum]->mem;
+                //Assign startMemBlock
                 processes[processNum]->startMemBlock = ++i;
 
                 j = i;
 
                 //I set i = j to shut my compiler up
+                //Assign the memory to true to mark it as unavailable
                 for(i = j; i < j + processes[processNum]->mem; i++)
                 {
                     memArray[i] = true;
                 }
                 return;
-
             }
-
         }
+        //If the block wasn't big enough, reset the block tracker and keep looking
         else
         {
             contiguousSpace = 0;
         }
-
     }
-
 }
 
 void my_free(bool *memArray, int processNum, Process *processes[])
 {
     int i;
-    //int freedCount = 0;
 
     for(i = processes[processNum]->startMemBlock; i < processes[processNum]->startMemBlock + processes[processNum]->mem; i++)
     {
         memArray[i] = false;
     }
-
-    //cout<<endl<<"Start: "<<processes[processNum]->startMemBlock<<" End: "<<processes[processNum]->startMemBlock + processes[processNum]->mem - 1<<" Memory: "<<processes[processNum]->mem<<" Freed: "<<freedCount<<endl<<endl;
 }
 
 int runProcesses2(int x, int amount, int k, Process *processes[])
@@ -292,47 +276,44 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
         memArray[y] = false;
     }
 
-    cout<<"memArray size: "<<malloc_usable_size(memArray)<<"KB"<<endl;
-
     time_a = clock();
     while(true)
     {
         oneRan = false;
         for (y = 0; y < k; y++)
         {
+            //Check is process has entered and still has cpu time remaining
             if(processes[y]->cpu > 0 && processes[y]->enterTime <= x)
             {
                 //If the process hasn't had memory allocated, try to allocate memory
                 //We don't need to check if the process has entered, since that's already been checked
                 if(processes[y]->startMemBlock == -1 && memUsed + processes[y]->mem <= memSize)
                 {
-                    //cout<<"Calling my_malloc on process "<<y<<endl;
-                    //processes[y]->buffer = (char*) malloc (processes[y]->mem+1);
-
                     my_malloc(memArray, y, processes);
 
+                    //my_malloc isn't guaranteed to find space the first time, so we have to check if the process was actually given memory
                     if(processes[y]->startMemBlock != -1)
                     {
+                        //Add to the used memory tracker
                         memUsed += processes[y]->mem;
                     }
-                    //cout<<processes[y]->mem<<" after add "<<memUsed<<endl;
                 }
 
                 //If even one process ran, we need to not quit yet
                 if(processes[y]->startMemBlock != -1)
                 {
                     oneRan = true;
+                    //Decrement cpu time for running processes
                     processes[y]->cpu--;
                 }
 
+                //When processes finish, free the memory and subtract from used memory
                 if(processes[y]->cpu == 0)
                 {
                     my_free(memArray, y, processes);
                     memUsed -= processes[y]->mem;
                 }
-
             }
-
         }
 
         //If no processes ran, free all processes and quit
@@ -340,32 +321,34 @@ int runProcesses2(int x, int amount, int k, Process *processes[])
         {
           int done = 1;
           int z;
+
+          //Loop through the processes to make sure they all have 0 cpu. Otherwise, we need to keep going
           for(z = 0; z < k; z++)
           {
             if(processes[z]->cpu != 0)
             {
-              //cout<<"DONE CHECKING"<<endl;
               done = 0;
             }
           }
-            //countBuffers(k, processes);
-            if(done == 1)
-            {
-              time_b = clock();
-              cout<<"Final x value: "<<x<<endl;
-              cout<<"Total time: "<<time_b - time_a<<endl;
+          if(done == 1)
+          {
+            time_b = clock();
+            cout<<"Final x value for custom malloc: "<<x<<endl;
+            cout<<"Total time for custom malloc: "<<time_b - time_a<<endl;
 
-              return x;
-            }
+            return x;
+          }
         }
-        x += amount;
+        x += amount; //Increment x (psuedo cycle tracker)
     }
     return x;
 }
 
 int main()
 {
+        //x keeps track of number of pseudo clock cycles
         int x = 0;
+        //Choice of memory amount to run
         int choice = 0;
         //Pick a new seed to be used for every scheduling method
         srand (time(NULL));
@@ -373,13 +356,9 @@ int main()
 
         cout<<"Seed: "<<seed<<endl;
 
-
         Process *processes[k];
-        cout<<"Number of processes: "<<k<<endl;
-        //Run all scheduling method, recreating the processes every time
 
-
-
+        //Main loop. Asks for input and runs using memory based on the selected option
         while(1)
         {
           cout<<"Type '1' for 20MB memory, '2' for 50% required, or '3' for 10% required. Type '-1' to quit."<<endl;
@@ -388,7 +367,7 @@ int main()
           {
             memSize = 20000;
           }
-          //Total required memory is always 1280KB because the 20KB average is guaranteed
+          //Total required memory is always 1280KB because the 20KB average is guaranteed. 20KB * 64 = 1280KB
           else if (choice == 2)
           {
             memSize = 640;
@@ -406,14 +385,17 @@ int main()
             cout<<"Invalid selection"<<endl;
             return 0;
           }
-          //countBuffers(k, processes);
+
+          //Run system malloc
+          x = 0;
           generateProcesses(k, processes, seed);
           x = runProcesses(x, 1, k, processes);
 
+          //Reset x
           x = 0;
+          //Run custom malloc
           generateProcesses(k, processes, seed);
           x = runProcesses2(x, 1, k, processes);
         }
-        //while(true);
         return 0;
 }
